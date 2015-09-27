@@ -16,6 +16,7 @@ except IOError:
 
 
 install_requires = [
+    "prestring"
 ]
 
 
@@ -23,6 +24,7 @@ docs_extras = [
 ]
 
 tests_require = [
+    "evilunit"
 ]
 
 testing_extras = tests_require + [

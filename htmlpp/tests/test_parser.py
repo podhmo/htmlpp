@@ -3,11 +3,11 @@ import unittest
 import evilunit
 
 
-@evilunit.test_target("htmlpp:Parser")
+@evilunit.test_target("htmlpp.parser:Parser")
 class ParserTests(unittest.TestCase):
     def test_yield__openclose(self):
-        from htmlpp import OpenClose
-        from htmlpp import Yield
+        from htmlpp.lexer import OpenClose
+        from htmlpp.nodes import Yield
         tokens = [OpenClose("yield", {})]
         target = self._makeOne()
         ast = target(tokens)
@@ -15,8 +15,8 @@ class ParserTests(unittest.TestCase):
         self.assertIsInstance(ast.children[0], Yield)
 
     def test_command__openclose(self):
-        from htmlpp import OpenClose
-        from htmlpp import Command
+        from htmlpp.lexer import OpenClose
+        from htmlpp.nodes import Command
         tokens = [OpenClose("hmm", {})]
         target = self._makeOne()
         ast = target(tokens)
@@ -47,7 +47,7 @@ class ParserTests(unittest.TestCase):
         #   yield
         # foo
 
-        from htmlpp import OpenClose, Open, Close
+        from htmlpp.lexer import OpenClose, Open, Close
         tokens = [
             Open("define", {"name": "foo"}),
             OpenClose("yield", {}),

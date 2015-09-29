@@ -3,6 +3,9 @@ import unittest
 
 
 class Tests(unittest.TestCase):
+    def assert_normalized(self, left, right):
+        self.assertEqual(_normalize(left), _normalize(right))
+
     def _callFUT(self, input_html, context):
         from htmlpp import Lexer, Parser, Codegen
         lexer = Lexer()
@@ -10,7 +13,6 @@ class Tests(unittest.TestCase):
         codegen = Codegen()
         M = {}
         code = codegen(parser(lexer(input_html)))
-        print(code)
         exec(code, M)
         return M["render"]
 
@@ -27,4 +29,14 @@ class Tests(unittest.TestCase):
         context = {}
         render = self._callFUT(input_html, context)
         result = render(context)
-        print(result)
+        expected = """
+<div class="box">
+this is box
+</div>
+"""
+        self.assert_normalized(result, expected)
+
+
+def _normalize(html):
+    lines = [x.strip() for x in html.strip().split("\n")]
+    return "".join(lines).replace("</", "\n</")

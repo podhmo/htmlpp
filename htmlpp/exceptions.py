@@ -5,3 +5,7 @@ class HTMLPPException(Exception):
 
 class ParseException(HTMLPPException):
     pass
+
+
+class CodegenException(HTMLPPException):
+    pass

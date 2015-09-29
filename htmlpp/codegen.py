@@ -33,20 +33,24 @@ class Codegen(object):
         fnname = self.naming["render_fmt"].format("")
 
         with m.def_("render", context, **{writer: None}):
-            m.stmt("from collections import ChainMap")
-            m.stmt('{kwargs} = ChainMap()'.format(kwargs=kwargs))
-            with m.if_("{writer}".format(writer=writer)):
-                m.return_('{fnname}({writer}, {context}, {kwargs})'.format(
-                    fnname=fnname, writer=writer, context=context, kwargs=kwargs
-                ))
-            with m.else_():
-                m.stmt("from io import StringIO")
-                m.stmt("port = StringIO()")
-                m.stmt('{writer} = port.write'.format(writer=writer))
-                m.stmt('{fnname}({writer}, {context}, {kwargs})'.format(
-                    fnname=fnname, writer=writer, context=context, kwargs=kwargs
-                ))
-                m.return_("port.getvalue()")
+            m.stmt("from htmlpp.structure import FrameMap")
+            m.stmt('{kwargs} = FrameMap()'.format(kwargs=kwargs))
+            with m.try_():
+                with m.if_("{writer}".format(writer=writer)):
+                    m.return_('{fnname}({writer}, {context}, {kwargs})'.format(
+                        fnname=fnname, writer=writer, context=context, kwargs=kwargs
+                    ))
+                with m.else_():
+                    m.stmt("from io import StringIO")
+                    m.stmt("port = StringIO()")
+                    m.stmt('{writer} = port.write'.format(writer=writer))
+                    m.stmt('{fnname}({writer}, {context}, {kwargs})'.format(
+                        fnname=fnname, writer=writer, context=context, kwargs=kwargs
+                    ))
+                    m.return_("port.getvalue()")
+            with m.except_("NameError as e"):
+                m.stmt("from htmlpp.exceptions import CodegenException")
+                m.raise_("CodegenException(e.args[0])")
 
     def _codegen_text(self, text, m):
         writer = self.naming["writer"]

@@ -6,13 +6,14 @@ class Tests(unittest.TestCase):
     def assert_normalized(self, left, right):
         self.assertEqual(_normalize(left), _normalize(right))
 
-    def _callFUT(self, input_html, context):
+    def _callFUT(self, input_html):
         from htmlpp import Lexer, Parser, Codegen
         lexer = Lexer()
         parser = Parser()
         codegen = Codegen()
         M = {}
         code = codegen(parser(lexer(input_html)))
+        print(code)
         exec(code, M)
         return M["render"]
 
@@ -27,7 +28,7 @@ class Tests(unittest.TestCase):
 <@box><p>this is box</p></@box>
 """
         context = {}
-        render = self._callFUT(input_html, context)
+        render = self._callFUT(input_html)
         result = render(context)
         expected = """
 <div class="box">
@@ -35,6 +36,22 @@ class Tests(unittest.TestCase):
 </div>
 """
         self.assert_normalized(result, expected)
+
+    def test_with_attributes(self):
+        input_html = """
+<@define name="box">
+<div class="box">
+<@yield/>
+</div>
+</@define>
+
+<@box id="myBox">hmm</@box>
+<@box id="yourBox">oyoyo</@box>
+"""
+        context = {}
+        render = self._callFUT(input_html)
+        result = render(context)
+        print(result)
 
     def test_with_two_block(self):
         input_html = """
@@ -51,7 +68,7 @@ class Tests(unittest.TestCase):
 </@box>
 """
         context = {}
-        render = self._callFUT(input_html, context)
+        render = self._callFUT(input_html)
         result = render(context)
         expected = """
 <div class="box">
@@ -90,7 +107,7 @@ Y
 </@twobox>
 """
         context = {}
-        render = self._callFUT(input_html, context)
+        render = self._callFUT(input_html)
         result = render(context)
         expected = """
 <div class="twobox">
@@ -128,7 +145,7 @@ Y
 </@nested>
 """
         context = {}
-        render = self._callFUT(input_html, context)
+        render = self._callFUT(input_html)
         result = render(context)
         expected = """
 <div class="nested">
@@ -167,7 +184,7 @@ Y
 </@nested>
 """
         context = {}
-        render = self._callFUT(input_html, context)
+        render = self._callFUT(input_html)
         result = render(context)
         expected = """
 <div class="nested">
@@ -197,7 +214,7 @@ Y
 <@FOO/>
 """
         context = {}
-        render = self._callFUT(input_html, context)
+        render = self._callFUT(input_html)
         result = render(context)
         self.assert_normalized(result, "fooboofoo")
 
@@ -216,7 +233,7 @@ Y
 <@FOO><@FOO.name>foo</@FOO.name></@FOO>
 """
         context = {}
-        render = self._callFUT(input_html, context)
+        render = self._callFUT(input_html)
         result = render(context)
         self.assert_normalized(result, "fooboofoo")
 

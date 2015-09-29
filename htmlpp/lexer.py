@@ -1,7 +1,5 @@
 # -*- coding:utf-8 -*-
-import re
-import shlex
-from collections import OrderedDict
+from .utils import parse_attrs, create_html_tag_regex
 
 
 class Token(object):
@@ -34,26 +32,10 @@ class Close(Token):
         return '</@{} at {}>'.format(self.name, hex(id(self)))
 
 
-def parse_attrs(attribute_string):
-    """dict from html attribute like string"""
-    if not attribute_string:
-        return {}
-    d = OrderedDict()
-    symbols = shlex.split(attribute_string.strip())
-    for sym in symbols:
-        if "=" in sym:
-            k, v = sym.split("=", 1)
-            d[k] = v
-        else:
-            d[sym] = True  # xxx
-    return d
-
-
 class Lexer(object):
     def __init__(self, prefix="@", parse_attrs=parse_attrs):
-        pattern = "<(/?)\s*{prefix}([a-zA-Z0-9_\.]+)(\s+[^\s>^/]+)*\s*(/?)>".format(prefix=prefix)
-        self.scanner = re.compile(pattern, re.MULTILINE)
         self.parse_attrs = parse_attrs
+        self.scanner = create_html_tag_regex(prefix=prefix)
 
     def dispatch(self, m):
         gs = m.groups()

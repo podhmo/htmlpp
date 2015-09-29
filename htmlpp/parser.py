@@ -13,6 +13,7 @@ from .nodes import (
     Import,
     Yield
 )
+from .utils import get_unquoted_string
 
 
 class _Gensym(object):
@@ -46,7 +47,7 @@ class Parser(object):
 
     def get_node_name(self, token):
         if hasattr(token, "attrs") and "name" in token.attrs:
-            return token.attrs["name"]
+            return get_unquoted_string(token.attrs["name"])
         else:
             return self.gensym(token.name)
 

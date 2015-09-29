@@ -1,4 +1,7 @@
 # -*- coding:utf-8 -*-
+from .utils import get_unquoted_string
+
+
 class Node(object):
     def __init__(self, name, attrs=None, children=None):
         self.name = name
@@ -25,7 +28,7 @@ class Node(object):
 
 
 class _Root(Node):
-    def codegen(self, gen, m):
+    def codegen(self, gen, m, attrs=None):
         fnname = gen.naming["render_fmt"].format("")
         writer = gen.naming["writer"]
         context = gen.naming["context"]
@@ -44,7 +47,7 @@ class _Root(Node):
 
 
 class Define(Node):
-    def codegen(self, gen, m):
+    def codegen(self, gen, m, attrs=None):
         fnname = gen.naming["render_fmt"].format(self.name)
         writer = gen.naming["writer"]
         context = gen.naming["context"]
@@ -52,7 +55,7 @@ class Define(Node):
 
         with m.def_(fnname, writer, context, kwargs):
             for node in self.children:
-                gen.gencode(node, m)
+                gen.gencode(node, m, attrs=attrs)
             if self.is_empty():
                 m.stmt("pass")
 
@@ -60,9 +63,9 @@ class Define(Node):
 class Yield(Node):
     @property
     def content_name(self):
-        return self.attrs.get("name") or "body"
+        return get_unquoted_string(self.attrs.get("name")) or "body"
 
-    def codegen(self, gen, m):
+    def codegen(self, gen, m, attrs=None):
         fnname = gen.naming["block_fmt"].format(self.content_name)
         writer = gen.naming["writer"]
         context = gen.naming["context"]
@@ -95,7 +98,7 @@ class Command(Node):
         name = node.name.replace(self.block_prefix, "", 1)
         return Block(name, node.attrs, node.children)
 
-    def codegen(self, gen, m):
+    def codegen(self, gen, m, attrs=None):
         fnname = gen.naming["render_fmt"].format(self.name)
         writer = gen.naming["writer"]
         context = gen.naming["context"]
@@ -118,8 +121,10 @@ class Command(Node):
         for node in block_nodes:
             block_name = gen.naming["block_fmt"].format(node.name)
             with m.def_(block_name, writer, context):
+                attrs = self.attrs
                 for snode in node.children:
-                    gen.gencode(snode, m)
+                    gen.gencode(snode, m, attrs=attrs)
+                    attrs = None
                 if node.is_empty():
                     m.stmt("pass")
             m.stmt('new_{kwargs}["{fnname}"] = {fnname}'.format(

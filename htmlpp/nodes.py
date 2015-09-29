@@ -68,7 +68,7 @@ class Yield(Node):
         context = gen.naming["context"]
         kwargs = gen.naming["kwargs"]
 
-        m.stmt('{kwargs}["{fnname}"]({writer}, {context}, {kwargs})'.format(
+        m.stmt('{kwargs}["{fnname}"]({writer}, {context})'.format(
             fnname=fnname, writer=writer, context=context, kwargs=kwargs
         ))
 
@@ -117,7 +117,7 @@ class Command(Node):
         ))
         for node in block_nodes:
             block_name = gen.naming["block_fmt"].format(node.name)
-            with m.def_(block_name, writer, context, kwargs):
+            with m.def_(block_name, writer, context):
                 for snode in node.children:
                     gen.gencode(snode, m)
                 if node.is_empty():

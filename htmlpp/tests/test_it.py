@@ -24,14 +24,39 @@ class Tests(unittest.TestCase):
  </div>
 </@define>
 
-<@box>this is box</@box>
+<@box><p>this is box</p></@box>
 """
         context = {}
         render = self._callFUT(input_html, context)
         result = render(context)
         expected = """
 <div class="box">
-this is box
+<p>this is box</p>
+</div>
+"""
+        self.assert_normalized(result, expected)
+
+    def test_with_two_block(self):
+        input_html = """
+<@define name="box">
+ <div class="box">
+ <h1 class="heading"><@yield name="heading" /></h1>
+ <@yield/>
+ </div>
+</@define>
+
+<@box>
+<@box.heading>this is title</@box.title>
+<p>this is box</p>
+</@box>
+"""
+        context = {}
+        render = self._callFUT(input_html, context)
+        result = render(context)
+        expected = """
+<div class="box">
+<h1 class="heading">this is title</h1>
+<p>this is box</p>
 </div>
 """
         self.assert_normalized(result, expected)

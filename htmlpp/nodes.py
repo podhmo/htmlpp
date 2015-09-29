@@ -74,6 +74,19 @@ class Block(Node):
 
 
 class Command(Node):
+    def __init__(self, *args, **kwargs):
+        super(Command, self).__init__(*args, **kwargs)
+        # <@foo><@foo.title/><@foo>  # @foo.title is treated as block node
+        self.block_prefix = "{}.".format(self.name)
+
+    def is_block_node(self, node):
+        return (isinstance(node, Block)
+                or (isinstance(node, Command) and node.name.startswith(self.block_prefix)))
+
+    def as_block_node(self, node):
+        name = node.name.replace(self.block_prefix, "", 1)
+        return Block(name, node.attrs, node.children)
+
     def codegen(self, gen, m):
         fnname = gen.naming["render_fmt"].format(self.name)
         writer = gen.naming["writer"]
@@ -83,14 +96,13 @@ class Command(Node):
         nodes = []
         block_nodes = []
         for node in self.children:
-            if isinstance(node, Block):
-                block_nodes.append(node)
+            if self.is_block_node(node):
+                block_nodes.append(self.as_block_node(node))
             else:
                 nodes.append(node)
 
-        if not block_nodes:
-            block_nodes.append(Block("body", {}, nodes))
-            nodes = []
+        block_nodes.append(Block("body", {}, nodes))
+        nodes = []
 
         m.stmt('new_{kwargs} = {kwargs}.new_child()  # kwargs is ChainMap'.format(
             kwargs=kwargs

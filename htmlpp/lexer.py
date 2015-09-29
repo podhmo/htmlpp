@@ -51,7 +51,7 @@ def parse_attrs(attribute_string):
 
 class Lexer(object):
     def __init__(self, prefix="@", parse_attrs=parse_attrs):
-        pattern = "<(/?)\s*{prefix}([a-zA-Z0-9_]+)(\s+[^\s>]+)*\s*(/?)>".format(prefix=prefix)
+        pattern = "<(/?)\s*{prefix}([a-zA-Z0-9_\.]+)(\s+[^\s>^/]+)*\s*(/?)>".format(prefix=prefix)
         self.scanner = re.compile(pattern, re.MULTILINE)
         self.parse_attrs = parse_attrs
 

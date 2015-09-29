@@ -61,6 +61,45 @@ class Tests(unittest.TestCase):
 """
         self.assert_normalized(result, expected)
 
+    def test_internal_fn(self):
+        input_html = """
+<@define name="twobox">
+ <@define name="left">
+   <div class="left">
+   <@yield/>
+   </div>
+ </@define>
+ <@define name="right">
+   <div class="right">
+   <@yield/>
+   </div>
+ </@define>
+<div class="twobox">
+  <@left><@yield name="left"/></@left>
+  <@right><@yield name="right"/></@right>
+</div>
+</@define>
+
+<@twobox>
+<@twobox.left>
+X
+</@twobox.left>
+<@twobox.right>
+Y
+</@twobox.right>
+</@twobox>
+"""
+        context = {}
+        render = self._callFUT(input_html, context)
+        result = render(context)
+        expected = """
+<div class="twobox">
+<div class="left">X</div>
+<div class="right">Y</div>
+</div>
+"""
+        self.assert_normalized(result, expected)
+
 
 def _normalize(html):
     lines = [x.strip() for x in html.strip().split("\n")]

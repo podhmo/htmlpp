@@ -12,6 +12,14 @@ class Node(object):
     def add_child(self, child):
         self.children.append(child)
 
+    def is_empty(self):
+        for child in self.children:
+            if not hasattr(child, "strip"):
+                return False
+            if child.strip():
+                return False
+        return True
+
     def __repr__(self):
         return "<{} {}>".format(self.get_class_name(), self.name)
 
@@ -31,7 +39,7 @@ class _Root(Node):
                     gen.gencode(node, m.outside)
                 else:
                     gen.gencode(node, m)
-            else:
+            if self.is_empty():
                 m.stmt("pass")
 
 
@@ -45,7 +53,7 @@ class Define(Node):
         with m.def_(fnname, writer, context, kwargs):
             for node in self.children:
                 gen.gencode(node, m)
-            else:
+            if self.is_empty():
                 m.stmt("pass")
 
 
@@ -100,8 +108,8 @@ class Command(Node):
                 block_nodes.append(self.as_block_node(node))
             else:
                 nodes.append(node)
-
-        block_nodes.append(Block("body", {}, nodes))
+        if nodes:
+            block_nodes.append(Block("body", {}, nodes))
         nodes = []
 
         m.stmt('new_{kwargs} = {kwargs}.new_child()  # kwargs is ChainMap'.format(
@@ -110,11 +118,10 @@ class Command(Node):
         for node in block_nodes:
             block_name = gen.naming["block_fmt"].format(node.name)
             with m.def_(block_name, writer, context, kwargs):
-                if not self.children:
+                for snode in node.children:
+                    gen.gencode(snode, m)
+                if node.is_empty():
                     m.stmt("pass")
-                else:
-                    for node in node.children:
-                        gen.gencode(node, m)
             m.stmt('new_{kwargs}["{fnname}"] = {fnname}'.format(
                 kwargs=kwargs, fnname=block_name
             ))

@@ -19,12 +19,17 @@ def parse_attrs(attribute_string):
     if not attribute_string:
         return d
     symbols = shlex.split(attribute_string.strip(), posix=False)
+    buf = []
     for sym in symbols:
         if "=" in sym:
+            if buf:
+                d[" ".join(buf)] = _marker
             k, v = sym.split("=", 1)
             d[k] = v
         else:
-            d[sym] = _marker
+            buf.append(sym)
+    if buf:
+        d[" ".join(buf)] = _marker
     return d
 
 
@@ -32,6 +37,7 @@ def string_from_attrs(attrs):
     if not attrs:
         return ""
     r = [""]
+
     for k in attrs:
         v = attrs[k]
         if v is _marker:

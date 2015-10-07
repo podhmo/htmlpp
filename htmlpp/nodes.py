@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from .utils import get_unquoted_string
+import pickle
 
 
 class Node(object):
@@ -33,15 +34,14 @@ class _Root(Node):
         writer = gen.naming["writer"]
         context = gen.naming["context"]
         kwargs = gen.naming["kwargs"]
+        default_attributes = gen.naming["default_attributes"]
 
-        m.outside = m.submodule()
-
-        with m.def_(fnname, writer, context, kwargs):
+        with m.def_(fnname, writer, context, kwargs, **{default_attributes: "{}"}):
             for node in self.children:
                 if isinstance(node, Define):
-                    gen.gencode(node, m.outside)
+                    gen.gencode(node, m.outside, use_pickle=False)
                 else:
-                    gen.gencode(node, m)
+                    gen.gencode(node, m, use_pickle=False)
             if self.is_empty():
                 m.stmt("pass")
 
@@ -52,12 +52,18 @@ class Define(Node):
         writer = gen.naming["writer"]
         context = gen.naming["context"]
         kwargs = gen.naming["kwargs"]
+        defaults = gen.naming["default_attributes"]
 
-        with m.def_(fnname, writer, context, kwargs):
+        m.body.append("def {}({}, {}, {}, {}=".format(fnname, writer, context, kwargs, defaults))
+        m.storeside = m.submodule("{}", newline=False)
+        m.stmt("):")
+        with m.scope():
+            m.stmt("")
             for node in self.children:
-                gen.gencode(node, m, attrs=attrs)
+                gen.gencode(node, m, attrs=attrs, use_pickle=True)
             if self.is_empty():
                 m.stmt("pass")
+        m.sep()
 
 
 class Yield(Node):
@@ -103,6 +109,7 @@ class Command(Node):
         writer = gen.naming["writer"]
         context = gen.naming["context"]
         kwargs = gen.naming["kwargs"]
+        attributes = gen.naming["attributes"]
 
         nodes = []
         block_nodes = []
@@ -123,13 +130,17 @@ class Command(Node):
             with m.def_(block_name, writer, context):
                 attrs = self.attrs
                 for snode in node.children:
-                    gen.gencode(snode, m, attrs=attrs)
+                    gen.gencode(snode, m, attrs=attrs, use_pickle=False)
                     attrs = None
                 if node.is_empty():
                     m.stmt("pass")
             m.stmt('new_{kwargs}["{fnname}"] = {fnname}'.format(
                 kwargs=kwargs, fnname=block_name
             ))
+        m.stmt("## {attributes} :: {code!r}".format(attributes=attributes, code=self.attrs))
+        m.stmt("new_{kwargs}[{attributes!r}] = pickle.loads({code!r})".format(
+            kwargs=kwargs, attributes=attributes, code=pickle.dumps(self.attrs)
+        ))
         m.stmt('{fnname}({writer}, {context}, new_{kwargs})'.format(
             fnname=fnname, writer=writer, context=context, kwargs=kwargs
         ))

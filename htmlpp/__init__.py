@@ -46,10 +46,29 @@ if __name__ == "__main__":
     <div>test2</div>
     </@foo>
     """
+    s = """
+<@define name="box">
+<div class="box">
+  <div class="wrapper"><@yield/></div>
+</div>
+</@define>
+<@define name="box2">
+<div>
+  <div class="wrapper"><@yield/></div>
+</div>
+</@define>
+
+<@box id="mine">
+  <p>hmm.</p>
+</@box>
+<@box y="2" id="yours" class="hmm" x="10">
+  <p>hmm.</p>
+</@box>
+"""
     tokens = lexer(s)
     ast = parser(tokens)
     # dump_tree(ast)
     codegen = Codegen()
     print(codegen(ast))
-    exec(codegen(ast))
-    print(render({}))
+    # exec(codegen(ast))
+    # print(render({}))

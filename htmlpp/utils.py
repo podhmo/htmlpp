@@ -13,6 +13,42 @@ def get_unquoted_string(x):
     return x
 
 
+def merge_dict(d0, d1):
+    """roughly merging strategy for attribute strings(dict)"""
+    for k, v in d1.items():
+        is_add = k.endswith(":add")
+        is_del = k.endswith(":del")
+        if is_del or is_add:
+            k = k[:-4]
+        if is_add:
+            if k not in d0:
+                d0[k] = v
+            else:
+                stored_value = d0[k]
+                is_quoted = False
+                if stored_value and stored_value.startswith('"') and stored_value.endswith('"'):
+                    is_quoted = True
+                    stored_value = stored_value[1:-1]
+                if v and v.startswith('"') and v.endswith('"'):
+                    is_quoted = True
+                    v = v[1:-1]
+                if is_quoted:
+                    d0[k] = '"{} {}"'.format(stored_value, v)
+                else:
+                    d0[k] = '{} {}'.format(stored_value, v)
+        elif is_del:
+            if k in d0:
+                stored_value = d0[k]
+                for sym in v.split(" "):
+                    if sym and sym.startswith('"') and sym.endswith('"'):
+                        sym = sym[1:-1]
+                    stored_value = stored_value.replace(sym, "")
+                d0[k] = stored_value
+        else:
+            d0[k] = v
+    return d0
+
+
 def parse_attrs(attribute_string):
     """dict from html attribute like string"""
     d = OrderedDict()

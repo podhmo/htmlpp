@@ -57,3 +57,60 @@ class StringFromAttrsTest(unittest.TestCase):
         result = self._callFUT(attrs)
         expected = """ name="foo" {%for i in lines %} {{i}} {% endfor %}"""
         self.assertEqual(result, expected)
+
+
+@evilunit.test_function("htmlpp.utils:merge_dict")
+class MergeDictTest(unittest.TestCase):
+    def test_it__overwrite__empty(self):
+        d0 = {}
+        d1 = {"a": "b"}
+        self._callFUT(d0, d1)
+        self.assertEqual(d0, {"a": "b"})
+
+    def test_it__overwrite(self):
+        d0 = {"a": "b"}
+        d1 = {"a": "c"}
+        self._callFUT(d0, d1)
+        self.assertEqual(d0, {"a": "c"})
+
+    def test_it__overwrite__quoted(self):
+        d0 = {"a": "b"}
+        d1 = {"a": '"c"'}
+        self._callFUT(d0, d1)
+        self.assertEqual(d0, {"a": '"c"'})
+
+    def test_it__add__empty(self):
+        d0 = {}
+        d1 = {"a:add": "b"}
+        self._callFUT(d0, d1)
+        self.assertEqual(d0, {"a": "b"})
+
+    def test_it__add(self):
+        d0 = {"a": "b"}
+        d1 = {"a:add": "c"}
+        self._callFUT(d0, d1)
+        self.assertEqual(d0, {"a": "b c"})
+
+    def test_it__add__qouted(self):
+        d0 = {"a": "b"}
+        d1 = {"a:add": '"c"'}
+        self._callFUT(d0, d1)
+        self.assertEqual(d0, {"a": '"b c"'})
+
+    def test_it__add__qouted2(self):
+        d0 = {"a": '"b"'}
+        d1 = {"a:add": '"c"'}
+        self._callFUT(d0, d1)
+        self.assertEqual(d0, {"a": '"b c"'})
+
+    def test_it__del__empty(self):
+        d0 = {}
+        d1 = {"a:del": "b"}
+        self._callFUT(d0, d1)
+        self.assertEqual(d0, {})
+
+    def test_it__del(self):
+        d0 = {"a": "b c"}
+        d1 = {"a:del": "b"}
+        self._callFUT(d0, d1)
+        self.assertEqual(d0, {"a": " c"})

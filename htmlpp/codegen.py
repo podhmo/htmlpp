@@ -25,7 +25,7 @@ class Codegen(object):
         m.stmt("import pickle")
         m.stmt("from collections import OrderedDict")
         m.stmt("from io import StringIO")
-        m.stmt("from htmlpp.utils import string_from_attrs")
+        m.stmt("from htmlpp.utils import string_from_attrs, merge_dict")
         m.stmt("from htmlpp.structure import FrameMap")
         m.stmt("from htmlpp.exceptions import CodegenException")
         m.sep()
@@ -106,9 +106,9 @@ class Codegen(object):
                 rest=text[match.end():]
             )
             m.stmt("D = OrderedDict()")
-            m.stmt("D.update({defaults})".format(defaults=default_attributes))
+            m.stmt("merge_dict(D, {defaults})".format(defaults=default_attributes))
             with m.if_("{attributes!r} in {kwargs}".format(attributes=attributes, kwargs=kwargs)):
-                m.stmt("D.update({kwargs}[{attributes!r}])".format(attributes=attributes, kwargs=kwargs))
+                m.stmt("merge_dict(D, {kwargs}[{attributes!r}])".format(attributes=attributes, kwargs=kwargs))
             m.stmt('{writer}({body!r}.format(attrs=string_from_attrs(D)))'.format(writer=writer, body=body))
         else:
             body = "<{prefix}{tag}{attrs}{suffix}>{rest}".format(

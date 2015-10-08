@@ -56,6 +56,29 @@ class Tests(unittest.TestCase):
 """
         self.assert_normalized(result, expected)
 
+    def test_with_add_attributes(self):
+        input_html = """
+<@define name="box">
+<div class="box" id="nobodyBox">
+<@yield/>
+</div>
+</@define>
+
+<@box class:add="mine" id="myBox">hmm</@box>
+<@box class:add="yours" id="yourBox">oyoyo</@box>
+<@box class:del="box">nobody</@box>
+"""
+        context = {}
+        render = self._callFUT(input_html)
+        result = render(context)
+        expected = """
+<div class="box mine" id="myBox">hmm</div>
+<div class="box yours" id="yourBox">oyoyo</div>
+<div class="" id="nobodyBox">nobody</div>
+"""
+        print(result)
+        self.assert_normalized(result, expected)
+
     def test_with_two_block(self):
         input_html = """
 <@define name="box">

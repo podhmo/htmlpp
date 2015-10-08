@@ -48,5 +48,5 @@ def string_from_attrs(attrs):
 
 
 def create_html_tag_regex(prefix="@"):
-    pattern = "<(/?)\s*{prefix}([a-zA-Z0-9_\.]+)(\s+[^\s>^/]+)*\s*(/?)>".format(prefix=prefix)
+    pattern = "<(/?)\s*{prefix}([a-zA-Z0-9_\.]+)((?:\s+[^\s>^/]+)+)*\s*(/?)>".format(prefix=prefix)
     return re.compile(pattern, re.MULTILINE)

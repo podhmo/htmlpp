@@ -40,10 +40,10 @@ class Parser(object):
     def create_node(self, token):
         try:
             factory = self.node_classes[token.name]
-            return factory(name=self.get_node_name(token), attrs=getattr(token, "attrs"))
+            return factory(name=self.get_node_name(token), attrs=token.attrs)
         except KeyError:
             factory = self.command_node
-            return factory(name=token.name, attrs=getattr(token, "attrs"))
+            return factory(name=token.name, attrs=token.attrs)
 
     def get_node_name(self, token):
         if hasattr(token, "attrs") and "name" in token.attrs:

@@ -69,6 +69,7 @@ if __name__ == "__main__":
     ast = parser(tokens)
     # dump_tree(ast)
     codegen = Codegen()
-    print(codegen(ast))
+    # print(codegen(ast))
     # exec(codegen(ast))
     # print(render({}))
+    # namespace

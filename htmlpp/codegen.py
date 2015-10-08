@@ -30,7 +30,7 @@ class Codegen(object):
         m.stmt("from htmlpp.exceptions import CodegenException")
         m.sep()
         m.outside = m.submodule()
-
+        m.storestack = m.outside.storestack = []
         self.gencode(ast, m)
         self.genmainfn(m)
         return str(m)
@@ -72,8 +72,8 @@ class Codegen(object):
     def _codegen_default_attributes(self, attrs, m, use_pickle=False):
         if attrs and use_pickle:
             default_attributes = self.naming["default_attributes"]
-            m.storeside.body.body.pop()  # xxx
-            m.storeside.body.append('pickle.loads({code!r})'.format(code=pickle.dumps(attrs)))
+            m.storestack[-1].body.body.pop()  # xxx
+            m.storestack[-1].body.append('pickle.loads({code!r})'.format(code=pickle.dumps(attrs)))
             m.stmt('## {} :: {!r}'.format(default_attributes, attrs))
 
     def _codegen_text(self, text, m, passed_attrs=None, use_pickle=False):

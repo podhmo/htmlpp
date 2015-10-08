@@ -13,7 +13,6 @@ class Tests(unittest.TestCase):
         codegen = Codegen()
         M = {}
         code = codegen(parser(lexer(input_html)))
-        print(code)
         exec(code, M)
         return M["render"]
 
@@ -51,7 +50,11 @@ class Tests(unittest.TestCase):
         context = {}
         render = self._callFUT(input_html)
         result = render(context)
-        print(result)
+        expected = """
+<div class="box" id="myBox">hmm</div>
+<div class="box" id="yourBox">oyoyo</div>
+"""
+        self.assert_normalized(result, expected)
 
     def test_with_two_block(self):
         input_html = """
@@ -63,7 +66,7 @@ class Tests(unittest.TestCase):
 </@define>
 
 <@box>
-<@box.heading>this is title</@box.title>
+<@box.heading>this is title</@box.heading>
 <p>this is box</p>
 </@box>
 """
@@ -197,7 +200,7 @@ Y
 """
         self.assert_normalized(result, expected)
 
-    def test_side_effect_render(self):
+    def test_same_name_render(self):
         input_html = """
 <@define name="FOO">
 <@define name="name">foo</@define>
@@ -218,7 +221,7 @@ Y
         result = render(context)
         self.assert_normalized(result, "fooboofoo")
 
-    def test_side_effect_block(self):
+    def test_same_name_block(self):
         input_html = """
 <@define name="FOO">
 <@yield name="name"/>

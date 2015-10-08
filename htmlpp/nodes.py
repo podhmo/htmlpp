@@ -55,7 +55,7 @@ class Define(Node):
         defaults = gen.naming["default_attributes"]
 
         m.body.append("def {}({}, {}, {}, {}=".format(fnname, writer, context, kwargs, defaults))
-        m.storeside = m.submodule("{}", newline=False)
+        m.storestack.append(m.submodule("{}", newline=False))
         m.stmt("):")
         with m.scope():
             m.stmt("")
@@ -63,6 +63,7 @@ class Define(Node):
                 gen.gencode(node, m, attrs=attrs, use_pickle=True)
             if self.is_empty():
                 m.stmt("pass")
+        m.storestack.pop()
         m.sep()
 
 
@@ -128,19 +129,18 @@ class Command(Node):
         for node in block_nodes:
             block_name = gen.naming["block_fmt"].format(node.name)
             with m.def_(block_name, writer, context):
-                attrs = self.attrs
                 for snode in node.children:
-                    gen.gencode(snode, m, attrs=attrs, use_pickle=False)
-                    attrs = None
+                    gen.gencode(snode, m, attrs=None, use_pickle=False)
                 if node.is_empty():
                     m.stmt("pass")
             m.stmt('new_{kwargs}["{fnname}"] = {fnname}'.format(
                 kwargs=kwargs, fnname=block_name
             ))
-        m.stmt("## {attributes} :: {code!r}".format(attributes=attributes, code=self.attrs))
-        m.stmt("new_{kwargs}[{attributes!r}] = pickle.loads({code!r})".format(
-            kwargs=kwargs, attributes=attributes, code=pickle.dumps(self.attrs)
-        ))
+        if self.attrs:
+            m.stmt("## {attributes} :: {code!r}".format(attributes=attributes, code=self.attrs))
+            m.stmt("new_{kwargs}[{attributes!r}] = pickle.loads({code!r})".format(
+                kwargs=kwargs, attributes=attributes, code=pickle.dumps(self.attrs)
+            ))
         m.stmt('{fnname}({writer}, {context}, new_{kwargs})'.format(
             fnname=fnname, writer=writer, context=context, kwargs=kwargs
         ))

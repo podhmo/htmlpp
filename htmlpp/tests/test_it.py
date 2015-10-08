@@ -18,11 +18,11 @@ class Tests(unittest.TestCase):
 
     def test_it(self):
         input_html = """
-<@define name="box">
+<@def name="box">
  <div class="box">
  <@yield/>
  </div>
-</@define>
+</@def>
 
 <@box><p>this is box</p></@box>
 """
@@ -38,11 +38,11 @@ class Tests(unittest.TestCase):
 
     def test_with_attributes(self):
         input_html = """
-<@define name="box">
+<@def name="box">
 <div class="box">
 <@yield/>
 </div>
-</@define>
+</@def>
 
 <@box id="myBox">hmm</@box>
 <@box id="yourBox">oyoyo</@box>
@@ -58,11 +58,11 @@ class Tests(unittest.TestCase):
 
     def test_with_add_attributes(self):
         input_html = """
-<@define name="box">
+<@def name="box">
 <div class="box" id="nobodyBox">
 <@yield/>
 </div>
-</@define>
+</@def>
 
 <@box class:add="mine" id="myBox">hmm</@box>
 <@box class:add="yours" id="yourBox">oyoyo</@box>
@@ -81,12 +81,12 @@ class Tests(unittest.TestCase):
 
     def test_with_two_block(self):
         input_html = """
-<@define name="box">
+<@def name="box">
  <div class="box">
  <h1 class="heading"><@yield name="heading" /></h1>
  <@yield/>
  </div>
-</@define>
+</@def>
 
 <@box>
 <@box.heading>this is title</@box.heading>
@@ -106,22 +106,22 @@ class Tests(unittest.TestCase):
 
     def test_internal_fn(self):
         input_html = """
-<@define name="twobox">
- <@define name="left">
+<@def name="twobox">
+ <@def name="left">
    <div class="left">
    <@yield/>
    </div>
- </@define>
- <@define name="right">
+ </@def>
+ <@def name="right">
    <div class="right">
    <@yield/>
    </div>
- </@define>
+ </@def>
 <div class="twobox">
   <@left><@yield name="left"/></@left>
   <@right><@yield name="right"/></@right>
 </div>
-</@define>
+</@def>
 
 <@twobox>
 <@twobox.left>
@@ -145,26 +145,26 @@ Y
 
     def test_nested(self):
         input_html = """
-<@define name="nested">
-<@define name="nested0">
+<@def name="nested">
+<@def name="nested0">
 0<@yield/>
 <@nested1/>
 0<@yield/>
-</@define>
+</@def>
 
-<@define name="nested1">
+<@def name="nested1">
 1<@yield/>
 1<@yield/>
 <@nested2/>
 1<@yield/>
 1<@yield/>
-</@define>
+</@def>
 
-<@define name="nested2">
+<@def name="nested2">
 <@yield/><@yield/><@yield/>
-</@define>
+</@def>
 <div class="nested"><@nested0><@yield/></@nested0></div>
-</@define>
+</@def>
 
 <@nested>
 <p>foo</p>
@@ -186,24 +186,24 @@ Y
 
     def test_nested2(self):
         input_html = """
-<@define name="nested">
-  <@define name="nested0">
-    <@define name="nested1">
-      <@define name="nested2">
+<@def name="nested">
+  <@def name="nested0">
+    <@def name="nested1">
+      <@def name="nested2">
       <@yield/><@yield/><@yield/>
-      </@define>
+      </@def>
     1<@yield/>
     1<@yield/>
     <@nested2/>
     1<@yield/>
     1<@yield/>
-    </@define>
+    </@def>
   0<@yield/>
   <@nested1/>
   0<@yield/>
-  </@define>
+  </@def>
 <div class="nested"><@nested0><@yield/></@nested0></div>
-</@define>
+</@def>
 
 <@nested>
 <p>foo</p>
@@ -225,15 +225,15 @@ Y
 
     def test_same_name_render(self):
         input_html = """
-<@define name="FOO">
-<@define name="name">foo</@define>
+<@def name="FOO">
+<@def name="name">foo</@def>
 <@name/>
-</@define>
+</@def>
 
-<@define name="BOO">
-<@define name="name">boo</@define>
+<@def name="BOO">
+<@def name="name">boo</@def>
 <@name/>
-</@define>
+</@def>
 
 <@FOO/>
 <@BOO/>
@@ -246,13 +246,13 @@ Y
 
     def test_same_name_block(self):
         input_html = """
-<@define name="FOO">
+<@def name="FOO">
 <@yield name="name"/>
-</@define>
+</@def>
 
-<@define name="BOO">
+<@def name="BOO">
 <@yield name="name"/>
-</@define>
+</@def>
 
 <@FOO><@FOO.name>foo</@FOO.name></@FOO>
 <@BOO><@BOO.name>boo</@BOO.name></@BOO>

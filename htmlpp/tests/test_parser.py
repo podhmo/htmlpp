@@ -23,42 +23,42 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(len(ast.children), 1)
         self.assertIsInstance(ast.children[0], Command)
 
-    def test_define__with_nested(self):
-        # <@define name="foo">
+    def test_def__with_nested(self):
+        # <@def name="foo">
         #   <@yield/>
-        #   <@define name="bar">
+        #   <@def name="bar">
         #     <@yield/>
-        #     <@define name="boo">
-        #     </@define>
+        #     <@def name="boo">
+        #     </@def>
         #     <@yield/>
-        #   </@define>
+        #   </@def>
         #   <@yield/>
-        # </@define>
+        # </@def>
         # <@foo/>
 
         # convert to:
 
-        # define:foo
+        # def:foo
         #   yield
-        #   define:bar
+        #   def:bar
         #     yield
-        #     define:boo
+        #     def:boo
         #     yield
         #   yield
         # foo
 
         from htmlpp.lexer import OpenClose, Open, Close
         tokens = [
-            Open("define", {"name": "foo"}),
+            Open("def", {"name": "foo"}),
             OpenClose("yield", {}),
-            Open("define", {"name": "bar"}),
+            Open("def", {"name": "bar"}),
             OpenClose("yield", {}),
-            Open("define", {"name": "boo"}),
-            Close("define"),
+            Open("def", {"name": "boo"}),
+            Close("def"),
             OpenClose("yield", {}),
-            Close("define"),
+            Close("def"),
             OpenClose("yield", {}),
-            Close("define"),
+            Close("def"),
             OpenClose("foo", {}),
         ]
         target = self._makeOne()

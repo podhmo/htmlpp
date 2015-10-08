@@ -18,28 +18,28 @@ class LexerTests(unittest.TestCase):
 
     def test_token__open(self):
         from htmlpp.lexer import Open
-        s = "<@define x=\"y\">"
+        s = "<@def x=\"y\">"
         target = self._makeOne()
         result = target(s)
         self.assertIsInstance(result[0], Open)
-        self.assertEqual(result[0].name, "define")
+        self.assertEqual(result[0].name, "def")
         self.assertEqual(result[0].attrs, {'x': '"y"'})
 
     def test_token__close(self):
         from htmlpp.lexer import Close
-        s = "</@define>"
+        s = "</@def>"
         target = self._makeOne()
         result = target(s)
         self.assertIsInstance(result[0], Close)
-        self.assertEqual(result[0].name, "define")
+        self.assertEqual(result[0].name, "def")
 
     def test_token__changing_default_prefix(self):
         from htmlpp.lexer import Close
-        s = "</!define>"
+        s = "</!def>"
         target = self._makeOne(prefix="!")
         result = target(s)
         self.assertIsInstance(result[0], Close)
-        self.assertEqual(result[0].name, "define")
+        self.assertEqual(result[0].name, "def")
 
     def test_token__multiple_arguments(self):
         s = '<@box y="2" id="yours" class="hmm" x="10">'
@@ -53,8 +53,8 @@ class LexerTests(unittest.TestCase):
         from htmlpp.lexer import Close, Open, OpenClose
         from htmlpp.utils import _marker
         s = """
-<html><@define name="foo" {{bar|boo}} >{% for line in body %}
-</@define>{%endfor}
+<html><@def name="foo" {{bar|boo}} >{% for line in body %}
+</@def>{%endfor}
 <@yield/>
 </html>
 """
@@ -64,11 +64,11 @@ class LexerTests(unittest.TestCase):
         # [<str>, <Open>, <str>, <Close>, <str>, <OpenClose>, <str>]
         _, open_tag, __, close_tag, _, openclose_tag, ___ = result
         self.assertIsInstance(open_tag, Open)
-        self.assertEqual(open_tag.name, "define")
+        self.assertEqual(open_tag.name, "def")
         self.assertEqual(open_tag.attrs, {"name": '"foo"', "{{bar|boo}}": _marker})
 
         self.assertIsInstance(close_tag, Close)
-        self.assertEqual(close_tag.name, "define")
+        self.assertEqual(close_tag.name, "def")
 
         self.assertIsInstance(openclose_tag, OpenClose)
         self.assertEqual(openclose_tag.name, "yield")

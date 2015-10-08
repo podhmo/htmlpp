@@ -20,24 +20,24 @@ if __name__ == "__main__":
     lexer = Lexer()
     parser = Parser()
     s = """
-<@define name="foo">
+<@def name="foo">
 <div class="foo">
 <@yield/>
-<@define name="bar">
+<@def name="bar">
   <div class="bar">
   <@yield/>
-  <@define name="boo">
+  <@def name="boo">
     <div class="boo"/>
-  </@define>
+  </@def>
   <@boo/>
   <@yield/>
   </div>
-</@define>
+</@def>
 <@bar/>
 <@yield/>
 </div>
 
-</@define>
+</@def>
 
     <@foo>
     <div>test</div>
@@ -47,16 +47,16 @@ if __name__ == "__main__":
     </@foo>
     """
     s = """
-<@define name="box">
+<@def name="box">
 <div class="box">
   <div class="wrapper"><@yield/></div>
 </div>
-</@define>
-<@define name="box2">
+</@def>
+<@def name="box2">
 <div>
   <div class="wrapper"><@yield/></div>
 </div>
-</@define>
+</@def>
 
 <@box id="mine">
   <p>hmm.</p>

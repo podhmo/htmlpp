@@ -9,3 +9,7 @@ class ParseException(HTMLPPException):
 
 class CodegenException(HTMLPPException):
     pass
+
+
+class NotFound(HTMLPPException):
+    pass

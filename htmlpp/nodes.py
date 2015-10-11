@@ -37,12 +37,13 @@ class _Root(Node):
         default_attributes = gen.naming["default_attributes"]
 
         with m.def_(fnname, writer, context, kwargs, **{default_attributes: "{}"}):
+            is_emitted = False
             for node in self.children:
                 if isinstance(node, Def):
                     gen.gencode(node, m.outside, use_pickle=False)
                 else:
-                    gen.gencode(node, m, use_pickle=False)
-            if self.is_empty():
+                    is_emitted = gen.gencode(node, m, use_pickle=False) or is_emitted
+            if not is_emitted:
                 m.stmt("pass")
 
 
@@ -59,9 +60,10 @@ class Def(Node):
         m.stmt("):")
         with m.scope():
             m.stmt("")
+            is_emitted = False
             for node in self.children:
-                gen.gencode(node, m, attrs=attrs, use_pickle=True)
-            if self.is_empty():
+                is_emitted = gen.gencode(node, m, attrs=attrs, use_pickle=True) or is_emitted
+            if not is_emitted:
                 m.stmt("pass")
         m.storestack.pop()
         m.sep()
@@ -137,7 +139,7 @@ class Command(Node):
                 kwargs=kwargs, fnname=block_name
             ))
         if self.attrs:
-            m.stmt("## {attributes} :: {code!r}".format(attributes=attributes, code=self.attrs))
+            m.stmt("# {attributes} :: {code!r}".format(attributes=attributes, code=self.attrs))
             m.stmt("new_{kwargs}[{attributes!r}] = pickle.loads({code!r})".format(
                 kwargs=kwargs, attributes=attributes, code=pickle.dumps(self.attrs)
             ))

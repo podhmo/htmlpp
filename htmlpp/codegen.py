@@ -11,8 +11,8 @@ class Codegen(object):
 
         if self.naming is None:
             self.naming = dict(
-                render_fmt="_render_{}",
-                block_fmt="_block_{}",
+                render_fmt="render_{}",
+                block_fmt="block_{}",
                 writer="_writer",
                 context="_context",
                 kwargs="_kwargs",
@@ -24,10 +24,7 @@ class Codegen(object):
         m = PythonModule()
         m.stmt("import pickle")
         m.stmt("from collections import OrderedDict")
-        m.stmt("from io import StringIO")
-        m.stmt("from htmlpp.utils import string_from_attrs, merge_dict")
-        m.stmt("from htmlpp.structure import FrameMap")
-        m.stmt("from htmlpp.exceptions import CodegenException")
+        m.stmt("from htmlpp.utils import string_from_attrs, merge_dict, render_with")
         m.sep()
         m.outside = m.submodule()
         m.storestack = m.outside.storestack = []
@@ -37,7 +34,8 @@ class Codegen(object):
 
     def gencode(self, node, m, attrs=None, use_pickle=False):
         if hasattr(node, "codegen"):
-            return node.codegen(self, m, attrs=attrs)
+            node.codegen(self, m, attrs=attrs)
+            return True
         else:
             return self._codegen_text(node, m, passed_attrs=attrs, use_pickle=use_pickle)
 
@@ -48,21 +46,9 @@ class Codegen(object):
         fnname = self.naming["render_fmt"].format("")
 
         with m.def_("render", context, **{writer: None}):
-            m.stmt('{kwargs} = FrameMap()'.format(kwargs=kwargs))
-            with m.try_():
-                with m.if_("{writer}".format(writer=writer)):
-                    m.return_('{fnname}({writer}, {context}, {kwargs})'.format(
-                        fnname=fnname, writer=writer, context=context, kwargs=kwargs
-                    ))
-                with m.else_():
-                    m.stmt("port = StringIO()")
-                    m.stmt('{writer} = port.write'.format(writer=writer))
-                    m.stmt('{fnname}({writer}, {context}, {kwargs})'.format(
-                        fnname=fnname, writer=writer, context=context, kwargs=kwargs
-                    ))
-                    m.return_("port.getvalue()")
-            with m.except_("NameError as e"):
-                m.raise_("CodegenException(e.args[0])")
+            m.stmt('return render_with({fnname}, {writer}={writer}, **{context})'.format(
+                fnname=fnname, writer=writer, context=context, kwargs=kwargs
+            ))
 
     def _codegen_text_simple(self, text, m, use_pickle=False):
         if text.strip():
@@ -74,7 +60,7 @@ class Codegen(object):
             default_attributes = self.naming["default_attributes"]
             m.storestack[-1].body.body.pop()  # xxx
             m.storestack[-1].body.append('pickle.loads({code!r})'.format(code=pickle.dumps(attrs)))
-            m.stmt('## {} :: {!r}'.format(default_attributes, attrs))
+            m.stmt('# {} :: {!r}'.format(default_attributes, attrs))
 
     def _codegen_text(self, text, m, passed_attrs=None, use_pickle=False):
         writer = self.naming["writer"]
@@ -83,12 +69,12 @@ class Codegen(object):
         default_attributes = self.naming["default_attributes"]
 
         if not text.strip():
-            return
+            return False
 
         match = self.html_tag_regex.search(text)
         if not match:
             m.stmt('{writer}({body!r})'.format(writer=writer, body=str(text)))
-            return
+            return True
 
         prefix, tag, attrs_str, suffix = match.groups()
         attrs = parse_attrs(attrs_str or "")
@@ -110,6 +96,7 @@ class Codegen(object):
             with m.if_("{attributes!r} in {kwargs}".format(attributes=attributes, kwargs=kwargs)):
                 m.stmt("merge_dict(D, {kwargs}[{attributes!r}])".format(attributes=attributes, kwargs=kwargs))
             m.stmt('{writer}({body!r}.format(attrs=string_from_attrs(D)))'.format(writer=writer, body=body))
+            return True
         else:
             body = "<{prefix}{tag}{attrs}{suffix}>{rest}".format(
                 prefix=prefix,
@@ -119,3 +106,4 @@ class Codegen(object):
                 rest=text[match.end():]
             )
             m.stmt('{writer}({body!r})'.format(writer=writer, body=body))
+            return True

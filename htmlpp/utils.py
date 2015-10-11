@@ -2,6 +2,9 @@
 import re
 import shlex
 from collections import OrderedDict
+from io import StringIO
+from .structure import FrameMap
+from .exceptions import CodegenException
 
 
 _marker = object()
@@ -86,3 +89,17 @@ def string_from_attrs(attrs):
 def create_html_tag_regex(prefix="@"):
     pattern = "<(/?)\s*{prefix}([a-zA-Z0-9_\.]+)((?:\s+[^\s>^/]+)+)*\s*(/?)>".format(prefix=prefix)
     return re.compile(pattern, re.MULTILINE)
+
+
+def render_with(fn, _writer=None, **_context):
+    _kwargs = FrameMap()
+    try:
+        if _writer:
+            return fn(_writer, _context, _kwargs)
+        else:
+            port = StringIO()
+            _writer = port.write
+            fn(_writer, _context, _kwargs)
+            return port.getvalue()
+    except NameError as e:
+        raise CodegenException(e.args[0])

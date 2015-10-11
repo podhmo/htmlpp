@@ -9,7 +9,7 @@ from .lexer import (
 from .nodes import (
     Command,
     _Root,
-    Define,
+    Def,
     Import,
     Yield
 )
@@ -83,6 +83,6 @@ class Parser(object):
             raise ParseException("unmatched tag: stack={}".format(stack))
 
 
-Parser.register(Define)
+Parser.register(Def)
 Parser.register(Yield)
 Parser.register(Import)

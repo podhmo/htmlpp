@@ -38,7 +38,7 @@ class _Root(Node):
 
         with m.def_(fnname, writer, context, kwargs, **{default_attributes: "{}"}):
             for node in self.children:
-                if isinstance(node, Define):
+                if isinstance(node, Def):
                     gen.gencode(node, m.outside, use_pickle=False)
                 else:
                     gen.gencode(node, m, use_pickle=False)
@@ -46,7 +46,7 @@ class _Root(Node):
                 m.stmt("pass")
 
 
-class Define(Node):
+class Def(Node):
     def codegen(self, gen, m, attrs=None):
         fnname = gen.naming["render_fmt"].format(self.name)
         writer = gen.naming["writer"]

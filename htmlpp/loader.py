@@ -28,6 +28,12 @@ def load_module(module_id, path):
     return machinery.SourceFileLoader(module_id, path).load_module()
 
 
+def get_locator(directories, outdir=None, namespace="htmlpp.", ext=".pre.html"):
+    # TODO: include also sys.site_packages?
+    loader = ModuleLoader(namespace=namespace, tmpdir=outdir)
+    return FileSystemModuleLocator(directories, loader, ext=ext)
+
+
 class ModuleLoader(object):
     def __init__(self, namespace=None, tmpdir=None):
         self.lexer = Lexer()

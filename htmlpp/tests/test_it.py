@@ -16,6 +16,13 @@ class Tests(unittest.TestCase):
         exec(code, M)
         return M["render"]
 
+    def _makeContext(self, D):
+        from htmlpp.structure import Context
+
+        class DummyLocator:
+            pass
+        return Context(D, DummyLocator())
+
     def test_it(self):
         input_html = """
 <@def name="box">
@@ -26,7 +33,7 @@ class Tests(unittest.TestCase):
 
 <@box><p>this is box</p></@box>
 """
-        context = {}
+        context = self._makeContext({})
         render = self._callFUT(input_html)
         result = render(context)
         expected = """
@@ -47,7 +54,7 @@ class Tests(unittest.TestCase):
 <@box id="myBox">hmm</@box>
 <@box id="yourBox">oyoyo</@box>
 """
-        context = {}
+        context = self._makeContext({})
         render = self._callFUT(input_html)
         result = render(context)
         expected = """
@@ -68,7 +75,7 @@ class Tests(unittest.TestCase):
 <@box class:add="yours" id="yourBox">oyoyo</@box>
 <@box class:del="box">nobody</@box>
 """
-        context = {}
+        context = self._makeContext({})
         render = self._callFUT(input_html)
         result = render(context)
         expected = """
@@ -93,7 +100,7 @@ class Tests(unittest.TestCase):
 <p>this is box</p>
 </@box>
 """
-        context = {}
+        context = self._makeContext({})
         render = self._callFUT(input_html)
         result = render(context)
         expected = """
@@ -132,7 +139,7 @@ Y
 </@twobox.right>
 </@twobox>
 """
-        context = {}
+        context = self._makeContext({})
         render = self._callFUT(input_html)
         result = render(context)
         expected = """
@@ -170,7 +177,7 @@ Y
 <p>foo</p>
 </@nested>
 """
-        context = {}
+        context = self._makeContext({})
         render = self._callFUT(input_html)
         result = render(context)
         expected = """
@@ -209,7 +216,7 @@ Y
 <p>foo</p>
 </@nested>
 """
-        context = {}
+        context = self._makeContext({})
         render = self._callFUT(input_html)
         result = render(context)
         expected = """
@@ -239,7 +246,7 @@ Y
 <@BOO/>
 <@FOO/>
 """
-        context = {}
+        context = self._makeContext({})
         render = self._callFUT(input_html)
         result = render(context)
         self.assert_normalized(result, "fooboofoo")
@@ -258,7 +265,7 @@ Y
 <@BOO><@BOO.name>boo</@BOO.name></@BOO>
 <@FOO><@FOO.name>foo</@FOO.name></@FOO>
 """
-        context = {}
+        context = self._makeContext({})
         render = self._callFUT(input_html)
         result = render(context)
         self.assert_normalized(result, "fooboofoo")

@@ -91,7 +91,7 @@ def create_html_tag_regex(prefix="@"):
     return re.compile(pattern, re.MULTILINE)
 
 
-def render_with(fn, _writer=None, **_context):
+def render_with(fn, _context, _writer=None):
     _kwargs = FrameMap()
     try:
         if _writer:

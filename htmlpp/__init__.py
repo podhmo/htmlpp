@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 from htmlpp.lexer import Lexer
 from htmlpp.parser import Parser
 from htmlpp.codegen import Codegen
-from htmlpp.loader import FileSystemModuleLocator, ModuleLoader
+from htmlpp.loader import get_locator  # NOQA
 
 
 def dump_tree(ast, indent=0, d=2, strip_empty_text=True):
@@ -15,12 +15,6 @@ def dump_tree(ast, indent=0, d=2, strip_empty_text=True):
         print("{}{}".format(" " * indent, ast))
         for child in ast.children:
             dump_tree(child, indent=indent + d, d=d)
-
-
-def get_locator(directories, outdir=None, namespace="htmlpp.", ext=".pre.html"):
-    # TODO: include also sys.site_packages?
-    loader = ModuleLoader(namespace=namespace, tmpdir=outdir)
-    return FileSystemModuleLocator(directories, loader, ext=ext)
 
 
 if __name__ == "__main__":

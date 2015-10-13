@@ -86,7 +86,25 @@ class Yield(Node):
 
 
 class Import(Node):
-    pass
+    def __init__(self, *args, **kwargs):
+        super(Import, self).__init__(*args, **kwargs)
+        # TODO: gentle implementation
+        assert "module" in self.attrs
+        assert "alias" in self.attrs
+
+    @property
+    def module(self):
+        return self.attrs["module"]
+
+    @property
+    def alias(self):
+        return self.attrs["alias"]
+
+    def codegen(self, gen, m, attrs=None):
+        context = gen.naming["context"]
+        m.stmt('{context}.import_module({module!r}, {alias!r})'.format(
+            context=context, module=self.module, alias=self.alias
+        ))
 
 
 class Block(Node):
@@ -103,17 +121,14 @@ class Command(Node):
         return (isinstance(node, Block)
                 or (isinstance(node, Command) and node.name.startswith(self.block_prefix)))
 
+    def is_self_module_function(self, fnname):
+        return "." not in fnname
+
     def as_block_node(self, node):
         name = node.name.replace(self.block_prefix, "", 1)
         return Block(name, node.attrs, node.children)
 
-    def codegen(self, gen, m, attrs=None):
-        fnname = gen.naming["render_fmt"].format(self.name)
-        writer = gen.naming["writer"]
-        context = gen.naming["context"]
-        kwargs = gen.naming["kwargs"]
-        attributes = gen.naming["attributes"]
-
+    def collect_block_nodes(self):
         nodes = []
         block_nodes = []
         for node in self.children:
@@ -123,12 +138,19 @@ class Command(Node):
                 nodes.append(node)
         if nodes:
             block_nodes.append(Block("body", {}, nodes))
-        nodes = []
+        return block_nodes
+
+    def codegen(self, gen, m, attrs=None):
+        fnname = gen.naming["render_fmt"].format(self.name)
+        writer = gen.naming["writer"]
+        context = gen.naming["context"]
+        kwargs = gen.naming["kwargs"]
+        attributes = gen.naming["attributes"]
 
         m.stmt('new_{kwargs} = {kwargs}.new_child()  # kwargs is ChainMap'.format(
             kwargs=kwargs
         ))
-        for node in block_nodes:
+        for node in self.collect_block_nodes():
             block_name = gen.naming["block_fmt"].format(node.name)
             with m.def_(block_name, writer, context):
                 for snode in node.children:
@@ -138,11 +160,18 @@ class Command(Node):
             m.stmt('new_{kwargs}["{fnname}"] = {fnname}'.format(
                 kwargs=kwargs, fnname=block_name
             ))
+
         if self.attrs:
             m.stmt("# {attributes} :: {code!r}".format(attributes=attributes, code=self.attrs))
             m.stmt("new_{kwargs}[{attributes!r}] = pickle.loads({code!r})".format(
                 kwargs=kwargs, attributes=attributes, code=pickle.dumps(self.attrs)
             ))
-        m.stmt('{fnname}({writer}, {context}, new_{kwargs})'.format(
-            fnname=fnname, writer=writer, context=context, kwargs=kwargs
-        ))
+
+        if self.is_self_module_function(fnname):
+            m.stmt('{fnname}({writer}, {context}, new_{kwargs})'.format(
+                fnname=fnname, writer=writer, context=context, kwargs=kwargs
+            ))
+        else:
+            m.stmt('{context}[{fnname!r}]({writer}, {context}, new_{kwargs})'.format(
+                fnname=fnname, writer=writer, context=context, kwargs=kwargs
+            ))

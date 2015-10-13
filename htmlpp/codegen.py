@@ -46,7 +46,7 @@ class Codegen(object):
         fnname = self.naming["render_fmt"].format("")
 
         with m.def_("render", context, **{writer: None}):
-            m.stmt('return render_with({fnname}, {writer}={writer}, **{context})'.format(
+            m.stmt('return render_with({fnname}, {context}, {writer}={writer})'.format(
                 fnname=fnname, writer=writer, context=context, kwargs=kwargs
             ))
 

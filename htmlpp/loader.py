@@ -1,14 +1,17 @@
 # -*- coding:utf-8 -*-
+from functools import partial
 import os.path
 import tempfile
 import shutil
 import logging
 from importlib import machinery
 
+from .structure import Context
 from .exceptions import NotFound
-from htmlpp.lexer import Lexer
-from htmlpp.parser import Parser
-from htmlpp.codegen import Codegen
+from .utils import Gensym, render_with
+from .lexer import Lexer
+from .parser import Parser
+from .codegen import Codegen
 
 logger = logging.getLogger(__name__)
 
@@ -30,52 +33,70 @@ def load_module(module_id, path):
 
 def get_locator(directories, outdir=None, namespace="htmlpp.", ext=".pre.html"):
     # TODO: include also sys.site_packages?
-    loader = ModuleLoader(namespace=namespace, tmpdir=outdir)
-    return FileSystemModuleLocator(directories, loader, ext=ext)
+    transpiler = ModuleTranspiler(namespace=namespace, tmpdir=outdir)
+    return FileSystemModuleLocator(directories, transpiler, ext=ext)
 
 
-class ModuleLoader(object):
+class ModuleTranspiler(object):
     def __init__(self, namespace=None, tmpdir=None):
         self.lexer = Lexer()
         self.parser = Parser()
         self.codegen = Codegen()
         self.namespace = namespace
         self.tmpdir = tmpdir
+        self.gensym = Gensym()
 
     def full_module_id_of(self, module_id):
         if self.namespace:
             return "{}.{}".format(self.namespace.rstrip("."), module_id.lstrip("."))
         return module_id
 
-    def compile(self, module_id, code):
+    def emit(self, module_id, code):
         return compile_module(module_id, code, tmpdir=self.tmpdir)
 
     def load(self, module_id, path):
         module_id = self.full_module_id_of(module_id)
         return load_module(module_id, path)
 
-    def __call__(self, module_id, filename):
+    def __call__(self, filename, module_id):
         with open(filename) as rf:
-            code = self.codegen(self.parser(self.lexer(rf.read())))
-        path = self.compile(module_id, code)
+            return self.transpile(rf.read(), module_id)
+
+    def transpile(self, html, module_id=None):
+        module_id = module_id or self.gensym("_htmlpp_internal")
+        code = self.codegen(self.parser(self.lexer(html)))
+        path = self.emit(module_id, code)
         return self.load(module_id, path)
 
 
 class FileSystemModuleLocator(object):
-    def __init__(self, directoires, loader=None, ext=".pre.html"):
+    def __init__(self, directoires, transpiler=None, ext=".pre.html"):
         self.directoires = directoires
         self.cache = {}
         self.ext = ext.lstrip(".")
-        self.loader = loader or ModuleLoader()
+        self.transpiler = transpiler or ModuleTranspiler()
 
-    def __call__(self, module_name):
-        path_name = self.get_path_name(module_name)
-        for d in self.directoires:
-            fullpath = os.path.join(d, path_name)
-            if os.path.exists(fullpath):
-                return self.loader(module_name, fullpath)
-        raise NotFound(module_name)
+    def create_context(self):
+        return Context({}, self)
 
     def get_path_name(self, module_name):
         prefix = module_name.replace(".", "/")
         return "{}.{}".format(prefix.rstrip("."), self.ext)
+
+    def from_module_name(self, module_name):
+        path_name = self.get_path_name(module_name)
+        for d in self.directoires:
+            fullpath = os.path.join(d, path_name)
+            if os.path.exists(fullpath):
+                return self.transpiler(fullpath, module_name)
+        raise NotFound(module_name)
+    __call__ = from_module_name
+
+    def from_string(self, template):
+        module = self.transpiler.transpile(template)
+        module.context = self.create_context()
+        module.getvalue = partial(module.render, module.context)
+        return module
+
+    def render(self, template):
+        return self.from_string(template).getvalue()

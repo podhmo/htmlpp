@@ -1,13 +1,23 @@
 # -*- coding:utf-8 -*-
 import re
 import shlex
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from io import StringIO
 from .structure import FrameMap
 from .exceptions import CodegenException
 
 
 _marker = object()
+
+
+class Gensym(object):
+    def __init__(self):
+        self.c = defaultdict(int)
+
+    def __call__(self, name=""):
+        i = self.c[name]
+        self.c[name] += 1
+        return "{}{}".format(name, i)
 
 
 def get_unquoted_string(x):
@@ -87,7 +97,7 @@ def string_from_attrs(attrs):
 
 
 def create_html_tag_regex(prefix="@"):
-    pattern = "<(/?)\s*{prefix}([a-zA-Z0-9_\.]+)((?:\s+[^\s>^/]+)+)*\s*(/?)>".format(prefix=prefix)
+    pattern = "<(/?)\s*{prefix}([a-z:A-Z0-9_\.]+)((?:\s+[^\s>^/]+)+)*\s*(/?)>".format(prefix=prefix)
     return re.compile(pattern, re.MULTILINE)
 
 

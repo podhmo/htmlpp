@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-from collections import defaultdict
 from .exceptions import ParseException
 from .lexer import (
     Open,
@@ -13,17 +12,7 @@ from .nodes import (
     Import,
     Yield
 )
-from .utils import get_unquoted_string
-
-
-class _Gensym(object):
-    def __init__(self):
-        self.c = defaultdict(int)
-
-    def __call__(self, name=""):
-        i = self.c[name]
-        self.c[name] += 1
-        return "{}{}".format(name, i)
+from .utils import get_unquoted_string, Gensym
 
 
 class Parser(object):
@@ -31,7 +20,7 @@ class Parser(object):
     command_node = Command
 
     def __init__(self):
-        self.gensym = _Gensym()
+        self.gensym = Gensym()
 
     @classmethod
     def register(cls, nodeclass):

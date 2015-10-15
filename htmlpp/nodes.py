@@ -90,15 +90,9 @@ class Import(Node):
         super(Import, self).__init__(*args, **kwargs)
         # TODO: gentle implementation
         assert "module" in self.attrs
-        assert "alias" in self.attrs
-
-    @property
-    def module(self):
-        return self.attrs["module"]
-
-    @property
-    def alias(self):
-        return self.attrs["alias"]
+        self.alias = self.module = get_unquoted_string(self.attrs["module"])
+        if "alias" in self.attrs:
+            self.alias = get_unquoted_string(self.attrs["alias"])
 
     def codegen(self, gen, m, attrs=None):
         context = gen.naming["context"]
@@ -122,7 +116,7 @@ class Command(Node):
                 or (isinstance(node, Command) and node.name.startswith(self.block_prefix)))
 
     def is_self_module_function(self, fnname):
-        return "." not in fnname
+        return ":" not in fnname
 
     def as_block_node(self, node):
         name = node.name.replace(self.block_prefix, "", 1)

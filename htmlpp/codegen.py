@@ -1,7 +1,10 @@
 # -*- coding:utf-8 -*-
 import pickle
 from prestring.python import PythonModule
+from io import StringIO
 from .utils import create_html_tag_regex, parse_attrs, string_from_attrs
+from .structure import FrameMap
+from .exceptions import CodegenException
 
 
 class Codegen(object):
@@ -24,7 +27,8 @@ class Codegen(object):
         m = PythonModule()
         m.stmt("import pickle")
         m.stmt("from collections import OrderedDict")
-        m.stmt("from htmlpp.utils import string_from_attrs, merge_dict, render_with")
+        m.stmt("from htmlpp.utils import string_from_attrs, merge_dict")
+        m.stmt("from htmlpp.codegen import render_with")
         m.sep()
         m.outside = m.submodule()
         m.storestack = m.outside.storestack = []
@@ -107,3 +111,17 @@ class Codegen(object):
             )
             m.stmt('{writer}({body!r})'.format(writer=writer, body=body))
             return True
+
+
+def render_with(fn, _context, _writer=None):
+    _kwargs = FrameMap()
+    try:
+        if _writer:
+            return fn(_writer, _context, _kwargs)
+        else:
+            port = StringIO()
+            _writer = port.write
+            fn(_writer, _context, _kwargs)
+            return port.getvalue()
+    except NameError as e:
+        raise CodegenException(e.args[0])

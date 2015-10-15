@@ -8,7 +8,7 @@ from importlib import machinery
 
 from .structure import Context
 from .exceptions import NotFound
-from .utils import Gensym, render_with
+from .utils import Gensym
 from .lexer import Lexer
 from .parser import Parser
 from .codegen import Codegen

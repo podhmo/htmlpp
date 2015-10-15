@@ -73,4 +73,3 @@ if __name__ == "__main__":
     # print(codegen(ast))
     # exec(codegen(ast))
     # print(render({}))
-    # namespace

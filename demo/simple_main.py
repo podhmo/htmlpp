@@ -6,8 +6,19 @@ logging.basicConfig(level=logging.INFO)
 
 
 here = os.path.join(os.path.abspath(os.path.dirname(__file__)))
-locator = get_locator([here], outdir=here, namespace="demo")
-simple = locator("simple")
+locator = get_locator([here], outdir=here)
 
-import sys
-assert simple == sys.modules["demo.simple"]
+html = """\
+<@import module="simple" alias="s"/>
+
+<@s:box>
+<p>this is the contents of a box</p>
+</@s:box>
+"""
+print(locator.render(html))
+
+# <div class="box">
+
+# <p>this is the contents of a box</p>
+
+# </div>

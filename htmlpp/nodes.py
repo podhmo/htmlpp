@@ -115,8 +115,8 @@ class Command(Node):
         return (isinstance(node, Block)
                 or (isinstance(node, Command) and node.name.startswith(self.block_prefix)))
 
-    def is_self_module_function(self, fnname):
-        return ":" not in fnname
+    def is_module_access(self, name):
+        return ":" in name
 
     def as_block_node(self, node):
         name = node.name.replace(self.block_prefix, "", 1)
@@ -135,7 +135,6 @@ class Command(Node):
         return block_nodes
 
     def codegen(self, gen, m, attrs=None):
-        fnname = gen.naming["render_fmt"].format(self.name)
         writer = gen.naming["writer"]
         context = gen.naming["context"]
         kwargs = gen.naming["kwargs"]
@@ -161,11 +160,14 @@ class Command(Node):
                 kwargs=kwargs, attributes=attributes, code=pickle.dumps(self.attrs)
             ))
 
-        if self.is_self_module_function(fnname):
-            m.stmt('{fnname}({writer}, {context}, new_{kwargs})'.format(
-                fnname=fnname, writer=writer, context=context, kwargs=kwargs
+        if self.is_module_access(self.name):
+            module_name, name = self.name.split(":")
+            fnname = gen.naming["render_fmt"].format(name)
+            m.stmt('{context}[{module_name!r}].{fnname}({writer}, {context}, new_{kwargs})'.format(
+                fnname=fnname, writer=writer, context=context, kwargs=kwargs, module_name=module_name
             ))
         else:
-            m.stmt('{context}[{fnname!r}]({writer}, {context}, new_{kwargs})'.format(
+            fnname = gen.naming["render_fmt"].format(self.name)
+            m.stmt('{fnname}({writer}, {context}, new_{kwargs})'.format(
                 fnname=fnname, writer=writer, context=context, kwargs=kwargs
             ))

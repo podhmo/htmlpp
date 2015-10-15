@@ -15,6 +15,8 @@ from .codegen import Codegen
 
 logger = logging.getLogger(__name__)
 
+TMPDIR = object()
+
 
 def compile_module(module_id, code, tmpdir=None, suffix=".py"):
     tmpdir = tmpdir or tempfile.gettempdir()
@@ -51,21 +53,20 @@ class ModuleTranspiler(object):
             return "{}.{}".format(self.namespace.rstrip("."), module_id.lstrip("."))
         return module_id
 
-    def emit(self, module_id, code):
-        return compile_module(module_id, code, tmpdir=self.tmpdir)
-
     def load(self, module_id, path):
         module_id = self.full_module_id_of(module_id)
         return load_module(module_id, path)
 
-    def __call__(self, filename, module_id):
-        with open(filename) as rf:
-            return self.transpile(rf.read(), module_id)
+    def __call__(self, filepath, module_id, tmpdir=TMPDIR):
+        with open(filepath) as rf:
+            return self.transpile(rf.read(), module_id, tmpdir=tmpdir)
 
-    def transpile(self, html, module_id=None):
+    def transpile(self, html, module_id=None, tmpdir=TMPDIR):
         module_id = module_id or self.gensym("_htmlpp_internal")
         code = self.codegen(self.parser(self.lexer(html)))
-        path = self.emit(module_id, code)
+        if tmpdir is TMPDIR:
+            tmpdir = self.tmpdir
+        path = compile_module(module_id, code, tmpdir=tmpdir)
         return self.load(module_id, path)
 
 
@@ -92,11 +93,11 @@ class FileSystemModuleLocator(object):
         raise NotFound(module_name)
     __call__ = from_module_name
 
-    def from_string(self, template):
-        module = self.transpiler.transpile(template)
+    def from_string(self, template, tmpdir=TMPDIR):
+        module = self.transpiler.transpile(template, tmpdir=tmpdir)
         module.context = self.create_context()
         module.getvalue = partial(module.render, module.context)
         return module
 
     def render(self, template):
-        return self.from_string(template).getvalue()
+        return self.from_string(template, tmpdir=None).getvalue()

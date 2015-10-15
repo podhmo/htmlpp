@@ -28,11 +28,7 @@ class Context(object):
         return k in self.d
 
     def __getitem__(self, k):
-        if ":" in k:
-            name, module = k.split(":", 1)
-            return getattr(self.d[module], name)
-        else:
-            return self.d[k]
+        return self.d[k]
 
     def __setitem__(self, k, v):
         self.d[k] = v

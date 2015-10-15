@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/podhmo/htmlpp.svg
+  :target: https://travis-ci.org/podhmo/htmlpp.svg
+
 htmlpp
 ========================================
 

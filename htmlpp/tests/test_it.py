@@ -83,7 +83,6 @@ class Tests(unittest.TestCase):
 <div class="box yours" id="yourBox">oyoyo</div>
 <div class="" id="nobodyBox">nobody</div>
 """
-        print(result)
         self.assert_normalized(result, expected)
 
     def test_with_two_block(self):
@@ -269,6 +268,30 @@ Y
         render = self._callFUT(input_html)
         result = render(context)
         self.assert_normalized(result, "fooboofoo")
+
+    def test_with_condition(self):
+        input_html = """
+<@def name="a">
+{% if <@yield name="condition"/> %}
+ <a><@yield/></a>
+{% else %}
+<p>oops</p>
+{% endif %}
+</@def>
+
+<@a href="#"><@a.condition>xs</@a.condition><i class="icon-scope"/>find</@a>
+"""
+        context = self._makeContext({})
+        render = self._callFUT(input_html)
+        result = render(context)
+        expected = """
+{% if xs %}
+ <a href="#"><i class="icon-scope"/>find</a>
+{% else %}
+<p>oops</p>
+{% endif %}
+"""
+        self.assert_normalized(result, expected)
 
 
 def _normalize(html):

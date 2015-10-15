@@ -280,11 +280,17 @@ Y
 </@def>
 
 <@a href="#"><@a.condition>xs</@a.condition><i class="icon-scope"/>find</@a>
+<@a href="#" :condition="xs"><i class="icon-scope"/>find</@a>
 """
         context = self._makeContext({})
         render = self._callFUT(input_html)
         result = render(context)
         expected = """
+{% if xs %}
+ <a href="#"><i class="icon-scope"/>find</a>
+{% else %}
+<p>oops</p>
+{% endif %}
 {% if xs %}
  <a href="#"><i class="icon-scope"/>find</a>
 {% else %}

@@ -23,6 +23,16 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(len(ast.children), 1)
         self.assertIsInstance(ast.children[0], Command)
 
+    def test_with_shortcut_blocknode_expression(self):
+        from htmlpp.lexer import OpenClose
+        from htmlpp.nodes import Block
+        tokens = [OpenClose("box", {":title": "hmm"})]
+        target = self._makeOne()
+        ast = target(tokens)
+        self.assertEqual(len(ast.children), 1)
+        self.assertEqual(len(ast.children[0].children), 1)
+        self.assertIsInstance(ast.children[0].children[0], Block)
+
     def test_def__with_nested(self):
         # <@def name="foo">
         #   <@yield/>

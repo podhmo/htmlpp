@@ -18,6 +18,12 @@ class ParseAttrsTests(unittest.TestCase):
         expected = OrderedDict([('foo', '"bar"')])
         self.assertEqual(result, expected)
 
+    def test_with_shortcut_blocknode_expression(self):
+        attr_string = """href="#" :condition="xs" """
+        result = self._callFUT(attr_string)
+        expected = OrderedDict([('href', '"#"'), (':condition', '"xs"')])
+        self.assertEqual(result, expected)
+
     def test_noattributes(self):
         from htmlpp.utils import _marker
         attr_string = """

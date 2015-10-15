@@ -10,7 +10,8 @@ from .nodes import (
     _Root,
     Def,
     Import,
-    Yield
+    Yield,
+    Block
 )
 from .utils import get_unquoted_string, Gensym
 
@@ -27,12 +28,26 @@ class Parser(object):
         cls.node_classes[nodeclass.get_class_name()] = nodeclass
 
     def create_node(self, token):
-        try:
+        if token.name in self.node_classes:
             factory = self.node_classes[token.name]
             return factory(name=self.get_node_name(token), attrs=token.attrs)
-        except KeyError:
+        else:
             factory = self.command_node
-            return factory(name=token.name, attrs=token.attrs)
+            return self._create_node_for_command_node(factory, name=token.name, attrs=token.attrs)
+
+    def _create_node_for_command_node(self, factory, name, attrs):
+        # treating. :params attributes as block node
+        blocks = []
+        for k in list(attrs.keys()):
+            if k.startswith(":"):
+                block_node_name = "{}.{}".format(name, k[1:])  # :foo -> <node>.foo
+                block_node = self.node_classes["block"](name=block_node_name)
+                block_node.add_child(get_unquoted_string(attrs.pop(k)))
+                blocks.append(block_node)
+        new_node = factory(name=name, attrs=attrs)
+        for b in blocks:
+            new_node.add_child(b)
+        return new_node
 
     def get_node_name(self, token):
         if hasattr(token, "attrs") and "name" in token.attrs:
@@ -75,3 +90,4 @@ class Parser(object):
 Parser.register(Def)
 Parser.register(Yield)
 Parser.register(Import)
+Parser.register(Block)

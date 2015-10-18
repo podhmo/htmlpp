@@ -53,29 +53,29 @@ class UsingExternalModuleTests(unittest.TestCase):
     def test_render_self(self):
         locator = self._makeOne([self.datadir], None)
         html = """\
-<@def name="hmm">
+<@def name="this_is_external_module">
 <div class="hmm"><@yield/></div>
 </@def>
-<@hmm>hai</@hmm>
+<@this_is_external_module>hai</@this_is_external_module>
 """
         result = locator.render(html)
         self.assertEqual(result.strip(), '<div class="hmm">hai</div>')
 
     def test_render_with_external_module(self):
         locator = self._makeOne([self.datadir], None)
-        with open(os.path.join(self.datadir, "hmm.pre.html"), "w") as wf:
+        with open(os.path.join(self.datadir, "this_is_external_module.pre.html"), "w") as wf:
             html = """\
-<@def name="hmm">
+<@def name="this_is_external_module">
 <div class="hmm"><@yield/></div>
 </@def>
 """
             wf.write(html)
-        module = locator.from_module_name("hmm")
-        self.assertTrue(module.__name__.endswith("hmm"))
+        module = locator.from_module_name("this_is_external_module")
+        self.assertTrue(module.__name__.endswith("this_is_external_module"))
 
         main_html = """\
-<@import module="hmm"/>
-<@hmm:hmm>hai</@hmm:hmm>
+<@import module="this_is_external_module"/>
+<@this_is_external_module:this_is_external_module>hai</@this_is_external_module:this_is_external_module>
 """
         result = locator.render(main_html)
         self.assertEqual(result.strip(), '<div class="hmm">hai</div>')

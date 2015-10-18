@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-import os
 import sys
 import argparse
 
@@ -12,6 +11,13 @@ def codegen(args):
         print(transpiler.emit(u"".join(list(rf))))
 
 
+def render(args):
+    from htmlpp.loader import get_locator
+    directories = [args.directory]
+    with open(args.file) as rf:
+        print(get_locator(directories).render(rf.read()))
+
+
 def main(sys_args=sys.argv[1:]):
     parser = argparse.ArgumentParser()
     sub_parsers = parser.add_subparsers()
@@ -19,6 +25,12 @@ def main(sys_args=sys.argv[1:]):
     codegen_parser = sub_parsers.add_parser("codegen")
     codegen_parser.add_argument("files", nargs="*")
     codegen_parser.set_defaults(func=codegen)
+
+    render_parser = sub_parsers.add_parser("render")
+    render_parser.add_argument("--directory", default=".")
+    render_parser.add_argument("file")
+    render_parser.set_defaults(func=render)
+
     args = parser.parse_args(sys_args)
     try:
         func = args.func

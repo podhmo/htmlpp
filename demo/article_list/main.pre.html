@@ -1,0 +1,49 @@
+<@import module="tags" alias="t"/>
+{% extends 'base.html' %}
+
+{% block page_wrapper %}
+<@t:header>
+<i class="fa fa-article fa-fw"></i>   Article List
+</@t:header>
+
+<!-- /.row -->
+<@t:row>
+  <@t:table id="dataTables-example">
+  <thead>
+    <tr>
+      <th>画像</th>
+      <th>タイトル</th>
+      <th>path</th>
+      <th>連載</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr class="odd gradeX">
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  </tbody>
+
+  </@t:table>
+</@t:row>
+{% endblock page_wrapper %}
+
+{% block js %}
+<script>
+$(document).ready(function() {
+    // non display alert window
+    $.fn.dataTableExt.sErrMode = 'throw';
+    $('#dataTables-example').dataTable({
+        "oLanguage": dataTableLangJa,
+        "processing": true,
+        "serverSide": true,
+        "ajax": "{% url 'article:article_list_api' %}",
+        "iDisplayLength": 25,
+        "sErrMode": "throw",
+    });
+});
+</script>
+{% endblock js %}

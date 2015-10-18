@@ -80,6 +80,44 @@ class UsingExternalModuleTests(unittest.TestCase):
         result = locator.render(main_html)
         self.assertEqual(result.strip(), '<div class="hmm">hai</div>')
 
+    def test_render_with_nexted_external_module(self):
+        locator = self._makeOne([self.datadir], None)
+        with open(os.path.join(self.datadir, "_htmlpp_nested/this_is_external_module.pre.html"), "w") as wf:
+            html = """\
+<@def name="this_is_external_module">
+<div class="hmm"><@yield/></div>
+</@def>
+"""
+            wf.write(html)
+        module = locator.from_module_name("this_is_external_module")
+        self.assertTrue(module.__name__.endswith("this_is_external_module"))
+
+        main_html = """\
+<@import module="_htmlpp_nested.this_is_external_module"/>
+<@_htmlpp_nested.this_is_external_module:this_is_external_module>hai</@_htmlpp_nestedthis_is_external_module:this_is_external_module>
+"""
+        result = locator.render(main_html)
+        self.assertEqual(result.strip(), '<div class="hmm">hai</div>')
+
+    def test_render_with_nexted_external_module__alias(self):
+        locator = self._makeOne([self.datadir], None)
+        with open(os.path.join(self.datadir, "_htmlpp_nested/this_is_external_module.pre.html"), "w") as wf:
+            html = """\
+<@def name="this_is_external_module">
+<div class="hmm"><@yield/></div>
+</@def>
+"""
+            wf.write(html)
+        module = locator.from_module_name("this_is_external_module")
+        self.assertTrue(module.__name__.endswith("this_is_external_module"))
+
+        main_html = """\
+<@import module="_htmlpp_nested.this_is_external_module" alias="m"/>
+<@m:this_is_external_module>hai</@m:this_is_external_module>
+"""
+        result = locator.render(main_html)
+        self.assertEqual(result.strip(), '<div class="hmm">hai</div>')
+
 
 class UsingExternalPythonModuleTests(unittest.TestCase):
     def _makeOne(self, directories, outdir=None):

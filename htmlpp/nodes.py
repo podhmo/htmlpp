@@ -96,18 +96,28 @@ class Import(Node):
 
     def codegen(self, gen, m, attrs=None):
         context = gen.naming["context"]
-        m.stmt('{context}.import_module({module!r}, {alias!r})'.format(
+        setup = gen.naming["setup"]
+        m.setup.stmt('_m = {context}.import_module({module!r}, {alias!r})'.format(
             context=context, module=self.module, alias=self.alias
         ))
+        m.setup.stmt('hasattr(_m, {setup!r}) and _m.{setup}({context})'.format(
+            context=context, setup=setup, alias=self.alias
+        ))
+        return False
 
 
 class PyImport(Import):
     def codegen(self, gen, m, attrs=None):
         context = gen.naming["context"]
-        m.stmt('import {module}'.format(module=self.module))
-        m.stmt('{context}[{alias!r}] = {module}'.format(
+        setup = gen.naming["setup"]
+        m.setup.stmt('import {module}'.format(module=self.module))
+        m.setup.stmt('_m = {context}[{alias!r}] = {module}'.format(
             context=context, alias=self.alias, module=self.module
         ))
+        m.setup.stmt('hasattr(_m, {setup!r}) and _m.{setup}({context})'.format(
+            context=context, setup=setup, alias=self.alias
+        ))
+        return False
 
 
 class Block(Node):

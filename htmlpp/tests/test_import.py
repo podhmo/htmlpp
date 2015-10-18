@@ -85,23 +85,27 @@ class UsingExternalModuleTests(unittest.TestCase):
         with open(os.path.join(self.datadir, "alpha.pre.html"), "w") as wf:
             html = """\
 <@def name="one">
-<div class="one"><@yield/</div>
+<div class="one"><@yield/></div>
 </@def>
 """
+            wf.write(html)
         with open(os.path.join(self.datadir, "beta.pre.html"), "w") as wf:
             html = """\
 <@import module="alpha"/>
 <@def name="two">
-<@alpha:one><div class="two"><@yield/</div></@alpha:one>
+<@alpha:one><div class="two"><@yield/></div></@alpha:one>
 </@def>
 """
+            wf.write(html)
+
         main_html = """\
 <@import module="beta"/>
 <@beta:two>hmm</@beta:two>
 """
 
         result = locator.render(main_html)
-        print(result)
+        expected = '<div class="one"><div class="two">hmm</div></div>'
+        self.assertEqual(result.strip(), expected)
 
     def test_render_with_nexted_external_module(self):
         locator = self._makeOne([self.datadir], None)

@@ -14,6 +14,7 @@ class Codegen(object):
 
         if self.naming is None:
             self.naming = dict(
+                setup="setup",
                 render_fmt="render_{}",
                 block_fmt="block_{}",
                 writer="_writer",
@@ -32,24 +33,29 @@ class Codegen(object):
         m.sep()
         m.outside = m.submodule()
         m.storestack = m.outside.storestack = []
+        with m.def_(self.naming["setup"], self.naming["context"]):
+            m.stmt("pass")
+            m.outside.setup = m.setup = m.submodule()
         self.gencode(ast, m)
         self.genmainfn(m)
         return str(m)
 
     def gencode(self, node, m, attrs=None, use_pickle=False):
         if hasattr(node, "codegen"):
-            node.codegen(self, m, attrs=attrs)
-            return True
+            # treating None as True
+            return node.codegen(self, m, attrs=attrs) is not False
         else:
             return self._codegen_text(node, m, passed_attrs=attrs, use_pickle=use_pickle)
 
     def genmainfn(self, m):
+        setup = self.naming["setup"]
         context = self.naming["context"]
         writer = self.naming["writer"]
         kwargs = self.naming["kwargs"]
         fnname = self.naming["render_fmt"].format("")
 
         with m.def_("render", context, **{writer: None}):
+            m.stmt('{setup}({context})'.format(setup=setup, context=context))
             m.stmt('return render_with({fnname}, {context}, {writer}={writer})'.format(
                 fnname=fnname, writer=writer, context=context, kwargs=kwargs
             ))

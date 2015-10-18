@@ -2,3 +2,4 @@
 - function called by template, does not handle function arguments.
 - get_locator,Locator naming is bad
 - forgetting to put '<@yield/>', this maybe a cause of bug
+- using prestring as internal StriongIO, then eval-once action can be defiend?

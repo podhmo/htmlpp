@@ -54,4 +54,6 @@ setup(name='htmlpp',
       test_suite="htmlpp.tests",
       license="mit",
       entry_points="""
+[console_scripts]
+htmlpp = htmlpp.cli:main
 """)

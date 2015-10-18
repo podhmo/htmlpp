@@ -61,9 +61,12 @@ class ModuleTranspiler(object):
         with open(filepath) as rf:
             return self.transpile(rf.read(), module_id, tmpdir=tmpdir)
 
+    def emit(self, html):
+        return self.codegen(self.parser(self.lexer(html)))
+
     def transpile(self, html, module_id=None, tmpdir=TMPDIR):
         module_id = module_id or self.gensym("_htmlpp_internal")
-        code = self.codegen(self.parser(self.lexer(html)))
+        code = self.emit(html)
         if tmpdir is TMPDIR:
             tmpdir = self.tmpdir
         path = compile_module(module_id, code, tmpdir=tmpdir)

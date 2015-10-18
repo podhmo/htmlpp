@@ -80,6 +80,29 @@ class UsingExternalModuleTests(unittest.TestCase):
         result = locator.render(main_html)
         self.assertEqual(result.strip(), '<div class="hmm">hai</div>')
 
+    def test_render_with_external_module2(self):
+        locator = self._makeOne([self.datadir], None)
+        with open(os.path.join(self.datadir, "alpha.pre.html"), "w") as wf:
+            html = """\
+<@def name="one">
+<div class="one"><@yield/</div>
+</@def>
+"""
+        with open(os.path.join(self.datadir, "beta.pre.html"), "w") as wf:
+            html = """\
+<@import module="alpha"/>
+<@def name="two">
+<@alpha:one><div class="two"><@yield/</div></@alpha:one>
+</@def>
+"""
+        main_html = """\
+<@import module="beta"/>
+<@beta:two>hmm</@beta:two>
+"""
+
+        result = locator.render(main_html)
+        print(result)
+
     def test_render_with_nexted_external_module(self):
         locator = self._makeOne([self.datadir], None)
         with open(os.path.join(self.datadir, "_htmlpp_nested/this_is_external_module.pre.html"), "w") as wf:

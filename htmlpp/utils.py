@@ -96,3 +96,7 @@ def string_from_attrs(attrs):
 def create_html_tag_regex(prefix="@"):
     pattern = "<(/?)\s*{prefix}([a-z:A-Z0-9_\.]+)((?:\s+[^\s>^/]+)+)*\s*(/?)>".format(prefix=prefix)
     return re.compile(pattern, re.MULTILINE)
+
+
+def render_hello(_writer, _context, _kwargs, _default_attributes={}):
+    return _writer("hello")

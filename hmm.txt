@@ -1,0 +1,2 @@
+- using pyimport, calling function name is render_fmt prefixed name.(e.g. hello -> render_hello)
+- function called by template, does not handle function arguments.

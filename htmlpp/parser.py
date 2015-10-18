@@ -10,6 +10,7 @@ from .nodes import (
     _Root,
     Def,
     Import,
+    PyImport,
     Yield,
     Block
 )
@@ -90,4 +91,5 @@ class Parser(object):
 Parser.register(Def)
 Parser.register(Yield)
 Parser.register(Import)
+Parser.register(PyImport)
 Parser.register(Block)

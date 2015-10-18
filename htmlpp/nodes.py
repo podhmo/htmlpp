@@ -101,6 +101,15 @@ class Import(Node):
         ))
 
 
+class PyImport(Import):
+    def codegen(self, gen, m, attrs=None):
+        context = gen.naming["context"]
+        m.stmt('import {module}'.format(module=self.module))
+        m.stmt('{context}[{alias!r}] = {module}'.format(
+            context=context, alias=self.alias, module=self.module
+        ))
+
+
 class Block(Node):
     pass
 

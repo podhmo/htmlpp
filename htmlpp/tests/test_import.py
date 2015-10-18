@@ -79,3 +79,27 @@ class UsingExternalModuleTests(unittest.TestCase):
 """
         result = locator.render(main_html)
         self.assertEqual(result.strip(), '<div class="hmm">hai</div>')
+
+
+class UsingExternalPythonModuleTests(unittest.TestCase):
+    def _makeOne(self, directories, outdir=None):
+        from htmlpp.loader import get_locator
+        return get_locator(directories, outdir=outdir)
+
+    def test_it(self):
+        locator = self._makeOne(["."], None)
+        html = """\
+<@pyimport module="htmlpp.utils"/>
+<@htmlpp.utils:hello/>
+"""
+        result = locator.render(html)
+        self.assertEqual(result.strip(), 'hello')
+
+    def test_it_with_alias(self):
+        locator = self._makeOne(["."], None)
+        html = """\
+<@pyimport module="htmlpp.utils" alias="u"/>
+<@u:hello/>
+"""
+        result = locator.render(html)
+        self.assertEqual(result.strip(), 'hello')

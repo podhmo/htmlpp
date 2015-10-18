@@ -33,28 +33,21 @@ def load_module(module_id, path):
     return machinery.SourceFileLoader(module_id, path).load_module()
 
 
-def get_locator(directories, outdir=None, namespace="htmlpp.", ext=".pre.html"):
+def get_locator(directories, outdir=None, ext=".pre.html"):
     # TODO: include also sys.site_packages?
-    transpiler = ModuleTranspiler(namespace=namespace, tmpdir=outdir)
+    transpiler = ModuleTranspiler(tmpdir=outdir)
     return FileSystemModuleLocator(directories, transpiler, ext=ext)
 
 
 class ModuleTranspiler(object):
-    def __init__(self, namespace=None, tmpdir=None):
+    def __init__(self, tmpdir=None):
         self.lexer = Lexer()
         self.parser = Parser()
         self.codegen = Codegen()
-        self.namespace = namespace
         self.tmpdir = tmpdir
         self.gensym = Gensym()
 
-    def full_module_id_of(self, module_id):
-        if self.namespace:
-            return "{}.{}".format(self.namespace.rstrip("."), module_id.lstrip("."))
-        return module_id
-
     def load(self, module_id, path):
-        module_id = self.full_module_id_of(module_id)
         return load_module(module_id, path)
 
     def __call__(self, filepath, module_id, tmpdir=TMPDIR):

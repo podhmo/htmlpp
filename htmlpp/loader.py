@@ -4,7 +4,7 @@ import os.path
 import tempfile
 import shutil
 import logging
-from importlib import machinery, import_module
+from importlib import machinery
 
 from .structure import Context
 from .exceptions import NotFound
@@ -81,15 +81,16 @@ class FileSystemModuleLocator(object):
         return "{}.{}".format(prefix.rstrip("."), self.ext)
 
     def from_module_name(self, module_name):
-        try:
-            return import_module(module_name)
-        except ImportError:
-            path_name = self.get_path_name(module_name)
-            for d in self.directoires:
-                fullpath = os.path.join(d, path_name)
-                if os.path.exists(fullpath):
-                    return self.transpiler(fullpath, module_name)
-            raise NotFound(module_name)
+        if module_name in self.cache:
+            return self.cache[module_name]
+        path_name = self.get_path_name(module_name)
+        for d in self.directoires:
+            fullpath = os.path.join(d, path_name)
+            if os.path.exists(fullpath):
+                module = self.transpiler(fullpath, module_name)
+                self.cache[module_name] = module
+                return module
+        raise NotFound(module_name)
     __call__ = from_module_name
 
     def from_string(self, template, tmpdir=TMPDIR):

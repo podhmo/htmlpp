@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 from htmlpp.lexer import Lexer  # NOQA
 from htmlpp.parser import Parser  # NOQA
 from htmlpp.codegen import Codegen  # NOQA
-from htmlpp.loader import get_locator  # NOQA
+from htmlpp.loader import get_repository  # NOQA
 
 
 def dump_tree(ast, indent=0, d=2, strip_empty_text=True):
@@ -15,12 +15,3 @@ def dump_tree(ast, indent=0, d=2, strip_empty_text=True):
         print("{}{}".format(" " * indent, ast))
         for child in ast.children:
             dump_tree(child, indent=indent + d, d=d)
-
-
-if __name__ == "__main__":
-    from htmlpp.cli import codegen
-    import sys
-
-    class args:
-        files = sys.argv[1:]
-    codegen(args)

@@ -64,14 +64,16 @@ def parse_attrs(attribute_string):
     d = OrderedDict()
     if not attribute_string:
         return d
-    symbols = shlex.split(attribute_string.strip(), posix=False)
+    s = attribute_string.strip().replace("=", "= ")  # hmm
+    symbols = shlex.split(s, posix=False)
     buf = []
-    for sym in symbols:
-        if "=" in sym:
+    itr = iter(symbols)
+    for sym in itr:
+        if sym.endswith("="):
             if buf:
                 d[" ".join(buf)] = _marker
-            k, v = sym.split("=", 1)
-            d[k] = v
+            v = next(itr)
+            d[sym[:-1]] = v
         else:
             buf.append(sym)
     if buf:

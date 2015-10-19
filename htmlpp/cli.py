@@ -12,10 +12,10 @@ def codegen(args):
 
 
 def render(args):
-    from htmlpp.loader import get_locator
+    from htmlpp.loader import get_repository
     directories = [args.directory]
     with open(args.file) as rf:
-        print(get_locator(directories).render(rf.read()))
+        print(get_repository(directories).render(rf.read()))
 
 
 def main(sys_args=sys.argv[1:]):

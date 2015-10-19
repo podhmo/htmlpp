@@ -11,16 +11,16 @@ class FrameMap(ChainMap):
 
 
 class Context(object):
-    def __init__(self, d, locator):
+    def __init__(self, d, repository):
         self.d = d
-        self.locator = locator
+        self.repository = repository
 
     def import_module(self, module_name, alias):
         module = self.d.get(alias)
         if module is not None:
             return module
 
-        module = self.locator(module_name)
+        module = self.repository(module_name)
         self.d[alias] = module
         return module
 

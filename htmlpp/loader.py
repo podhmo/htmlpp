@@ -15,7 +15,7 @@ from .parser import Parser
 from .codegen import Codegen
 
 logger = logging.getLogger(__name__)
-
+logging.basicConfig(level=logging.INFO)
 OUTDIR = object()
 
 
@@ -34,14 +34,14 @@ def load_module(module_id, path):
     return machinery.SourceFileLoader(module_id, path).load_module()
 
 
-def get_locator(directories, outdir=None, ext=".pre.html"):
+def get_repository(directories, outdir=None, ext=".pre.html"):
     # TODO: include also sys.site_packages?
-    transpiler = ModuleTranspiler(outdir=outdir)
-    locator = FileSystemModuleLocator(directories, transpiler, ext=ext)
     if outdir is None:
         outdir = tempfile.gettempdir()
-    locator = SysPathImportLocatorWrapper(locator, outdir=outdir)
-    return locator
+    transpiler = ModuleTranspiler(outdir=outdir)
+    repository = FileSystemModuleRepository(directories, transpiler, ext=ext)
+    repository = SysPathImportRepositoryWrapper(repository, outdir=outdir)
+    return repository
 
 
 class ModuleTranspiler(object):
@@ -71,55 +71,63 @@ class ModuleTranspiler(object):
         return self.load(module_id, path)
 
 
-class SysPathImportLocatorWrapper(object):
-    def __init__(self, locator, outdir=None, file_check=True):
-        self.locator = locator
+class UseChildRepository(object):
+    def __contains__(self, module_name):
+        return module_name in self.repository
+
+    def __getitem__(self, module_name):
+        return self.repository[module_name]
+
+    def __setitem__(self, module_name, module):
+        self.repository[module_name] = module
+
+
+class SysPathImportRepositoryWrapper(UseChildRepository):
+    def __init__(self, repository, outdir=None, file_check=True):
+        self.repository = repository
         self.outdir = outdir
         self.file_check = file_check
         # side effect!!
         if outdir is not None and outdir not in sys.path:
+            logger.info(os.path.abspath(outdir))
             sys.path.append(os.path.abspath(outdir))
 
+    def create_context(self):
+        return Context({}, self)
+
     def from_module_name(self, module_name):
-        if module_name in self.locator:
-            return self.locator[module_name]
+        if module_name in self.repository:
+            return self.repository[module_name]
         target_file_path = None
         try:
             module = import_module(module_name)
             if self.file_check:
-                target_file_path = self.locator.lookup_target_file_path(module_name)
+                target_file_path = self.repository.lookup_target_file_path(module_name)
                 if module._HTMLPP_MTIME <= os.stat(target_file_path).st_mtime:
                     raise ImportError(module_name)
-            self.locator[module_name] = module
+            self.repository[module_name] = module
             return module
         except ImportError:
-            return self.locator.from_module_name(module_name, fullpath=target_file_path)
+            return self.repository.from_module_name(module_name, fullpath=target_file_path)
 
     __call__ = from_module_name
 
-    def from_string(self, template):
-        return self.locator.from_string(template, outdir=self.outdir or OUTDIR)
+    def from_string(self, template, outdir=OUTDIR, context=None):
+        context = context or self.create_context()
+        outdir = self.outdir or OUTDIR
+        return self.repository.from_string(template, outdir=outdir, context=context)
 
     def render(self, template):
-        return self.locator.render(template)
+        return self.from_string(template, outdir=None).getvalue()
 
     def clean(self):
-        self.locator.clean()
-
-    def __contains__(self, module_name):
-        return module_name in self.locator
-
-    def __getitem__(self, module_name):
-        return self.locator[module_name]
-
-    def __setitem__(self, module_name, module):
-        self.locator[module_name] = module
+        self.repository.clean()
 
 
-class FileSystemModuleLocator(object):
+class FileSystemModuleRepository(UseChildRepository):
     def __init__(self, directoires, transpiler, ext=".pre.html"):
         self.directoires = directoires
-        self.cache = {}
+        self.repository = {}
         self.ext = ext.lstrip(".")
         self.transpiler = transpiler
 
@@ -139,21 +147,21 @@ class FileSystemModuleLocator(object):
         return None
 
     def from_module_name(self, module_name, fullpath=None):
-        if module_name in self.cache:
-            return self.cache[module_name]
+        if module_name in self.repository:
+            return self.repository[module_name]
 
         fullpath = fullpath or self.lookup_target_file_path(module_name)
         if fullpath is None:
             raise NotFound(module_name)
         module = self.transpiler(fullpath, module_name)
-        self.cache[module_name] = module
+        self.repository[module_name] = module
         return module
 
     __call__ = from_module_name
 
-    def from_string(self, template, outdir=OUTDIR):
+    def from_string(self, template, outdir=OUTDIR, context=None):
         module = self.transpiler.transpile(template, outdir=outdir)
-        module.context = self.create_context()
+        module.context = context or self.create_context()
         module.getvalue = partial(module.render, module.context)
         return module
 
@@ -161,13 +169,4 @@ class FileSystemModuleLocator(object):
         return self.from_string(template, outdir=None).getvalue()
 
     def clean(self):
-        self.cache = {}
-
-    def __contains__(self, module_name):
-        return module_name in self.cache
-
-    def __getitem__(self, module_name):
-        return self.cache[module_name]
-
-    def __setitem__(self, module_name, module):
-        self.cache[module_name] = module
+        self.repository = {}

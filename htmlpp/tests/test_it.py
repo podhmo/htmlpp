@@ -19,9 +19,9 @@ class Tests(unittest.TestCase):
     def _makeContext(self, D):
         from htmlpp.structure import Context
 
-        class DummyLocator:
+        class DummyRepository:
             pass
-        return Context(D, DummyLocator())
+        return Context(D, DummyRepository())
 
     def test_it(self):
         input_html = """

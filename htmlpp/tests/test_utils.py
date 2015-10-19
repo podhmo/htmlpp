@@ -18,6 +18,12 @@ class ParseAttrsTests(unittest.TestCase):
         expected = OrderedDict([('foo', '"bar"')])
         self.assertEqual(result, expected)
 
+    def test_quoted_with_double(self):
+        attr_string = ' class="panel panel-default"'
+        result = self._callFUT(attr_string)
+        expected = OrderedDict([('class', '"panel panel-default"')])
+        self.assertEqual(result, expected)
+
     def test_with_shortcut_blocknode_expression(self):
         attr_string = """href="#" :condition="xs" """
         result = self._callFUT(attr_string)

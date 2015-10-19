@@ -128,7 +128,7 @@ class SysPathImportRepositoryWrapper(UseChildRepository):
 
     def from_string(self, template, outdir=OUTDIR, context=None):
         context = context or self.create_context()
-        outdir = self.outdir or OUTDIR
+        outdir = outdir if outdir is not OUTDIR else self.outdir
         return self.repository.from_string(template, outdir=outdir, context=context)
 
     def render(self, template):

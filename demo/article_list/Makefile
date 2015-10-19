@@ -1,6 +1,11 @@
 default:
-	# for i in `ls *.pre.html`; do htmlpp codegen $$i > `echo $$i | sed 's/pre\.html/py/'`; done
-	htmlpp render main.pre.html
+	@htmlpp render main.pre.html
+
+codegen:
+	for i in `find . -name "*.pre.html"`; do htmlpp codegen $$i > $$i.py; done
 
 clean:
 	rm *.py
+	rm **/*.py
+
+.PHONY: default codegen clean

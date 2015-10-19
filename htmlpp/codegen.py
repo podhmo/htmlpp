@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+import time
 import pickle
 from prestring.python import PythonModule
 from io import StringIO
@@ -30,6 +31,8 @@ class Codegen(object):
         m.stmt("from collections import OrderedDict")
         m.stmt("from htmlpp.utils import string_from_attrs, merge_dict")
         m.stmt("from htmlpp.codegen import render_with")
+        m.sep()
+        m.stmt("_HTMLPP_MTIME = {}".format(time.time()))
         m.sep()
         m.outside = m.submodule()
         m.storestack = m.outside.storestack = []

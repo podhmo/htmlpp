@@ -23,8 +23,22 @@ def compile_module(module_id, code, outdir=None, suffix=".py"):
     logger.debug("compiled code:\n%s", code)
     fd, path = tempfile.mkstemp()
     os.write(fd, code.encode("utf-8"))
-    dst = os.path.join(outdir, module_id) + suffix
-    logger.info("generated module file: %s", dst)
+    pathname = module_id.replace(".", "/")
+    if "." in module_id:
+        dirpath = os.path.dirname(os.path.join(outdir, pathname)).rstrip("/")
+        logger.info("generated directory: %s", dirpath)
+        if not os.path.exists(dirpath):
+            os.makedirs(dirpath, exist_ok=True)
+        # __init__.py
+        outdir = outdir.rstrip("/")
+        while dirpath != outdir:
+            initpath = os.path.join(dirpath, "__init__.py")
+            if not os.path.exists(initpath):
+                logger.info("generated __init__: %s", initpath)
+                open(initpath, "a").close()
+            dirpath = dirpath.rsplit("/", 1)[0]
+    dst = os.path.join(outdir, pathname) + suffix
+    logger.info("generated file: %s", dst)
     shutil.move(path, dst)
     return dst
 
@@ -107,6 +121,7 @@ class SysPathImportRepositoryWrapper(UseChildRepository):
             self.repository[module_name] = module
             return module
         except ImportError:
+            logger.info("import error: %s", module_name)
             return self.repository.from_module_name(module_name, fullpath=target_file_path)
 
     __call__ = from_module_name

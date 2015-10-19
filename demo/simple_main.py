@@ -1,12 +1,12 @@
 # -*- coding:utf-8 -*-
-from htmlpp import get_locator
+from htmlpp import get_repository
 import os.path
 import logging
 logging.basicConfig(level=logging.INFO)
 
 
 here = os.path.join(os.path.abspath(os.path.dirname(__file__)))
-locator = get_locator([here], outdir=here)
+repository = get_repository([here], outdir=here)
 
 html = """\
 <@import module="simple" alias="s"/>
@@ -15,7 +15,7 @@ html = """\
 <p>this is the contents of a box</p>
 </@s:box>
 """
-print(locator.render(html))
+print(repository.render(html))
 
 # <div class="box">
 

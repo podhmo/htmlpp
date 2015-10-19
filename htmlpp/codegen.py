@@ -98,17 +98,14 @@ class Codegen(object):
 
         m.stmt('{writer}({body!r})'.format(writer=writer, body=text[:match.start()]))
         if not prefix and use_pickle:
-            body = "<{prefix}{tag}{{attrs}}{suffix}>{rest}".format(
-                prefix=prefix,
-                tag=tag,
-                suffix=suffix,
-                rest=text[match.end():]
-            )
             m.stmt("D = OrderedDict()")
             m.stmt("merge_dict(D, {defaults})".format(defaults=default_attributes))
             with m.if_("{attributes!r} in {kwargs}".format(attributes=attributes, kwargs=kwargs)):
                 m.stmt("merge_dict(D, {kwargs}[{attributes!r}])".format(attributes=attributes, kwargs=kwargs))
-            m.stmt('{writer}({body!r}.format(attrs=string_from_attrs(D)))'.format(writer=writer, body=body))
+
+            m.stmt('{writer}({body!r})'.format(writer=writer, body="<{prefix}{tag}".format(prefix=prefix, tag=tag)))
+            m.stmt('{writer}(string_from_attrs(D))'.format(writer=writer))
+            m.stmt('{writer}({body!r})'.format(writer=writer, body="{suffix}>{rest}".format(suffix=suffix, rest=text[match.end():])))
             return True
         else:
             body = "<{prefix}{tag}{attrs}{suffix}>{rest}".format(

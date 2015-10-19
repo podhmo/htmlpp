@@ -279,7 +279,8 @@ Y
         context = self._makeContext({})
         render = self._callFUT(input_html)
         result = render(context)
-        print(result)
+        expected = '<a id="x">{x}hmm</a>'
+        self.assert_normalized(result, expected)
 
     def test_with_condition(self):
         input_html = """

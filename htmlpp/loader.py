@@ -15,7 +15,6 @@ from .parser import Parser
 from .codegen import Codegen
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 OUTDIR = object()
 
 

@@ -269,6 +269,18 @@ Y
         result = render(context)
         self.assert_normalized(result, "fooboofoo")
 
+    def test_with_format_bug(self):
+        input_html = """
+<@def name="a">
+ <a>{x}<@yield/></a>
+</@def>
+<@a id="x">hmm</@a>
+"""
+        context = self._makeContext({})
+        render = self._callFUT(input_html)
+        result = render(context)
+        print(result)
+
     def test_with_condition(self):
         input_html = """
 <@def name="a">

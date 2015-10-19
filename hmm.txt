@@ -3,3 +3,6 @@
 - get_locator,Locator naming is bad
 - forgetting to put '<@yield/>', this maybe a cause of bug
 - using prestring as internal StriongIO, then eval-once action can be defiend?
+- refactoring, put pass if empty. (create subclass of prestring module)
+- adjustment indentation and needless newline for output
+- hole tag? (collecting js scripts at one place)
